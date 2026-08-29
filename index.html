@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    ```
+    <title>Control Expert → PI Studio Converter</title>
+
+    <!-- SheetJS Excel Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #f1f5f9, #e8eef5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 580px;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 42px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+            animation: appear 0.5s ease-out;
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 18px;
+            border-radius: 18px;
+            background: #eef2f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        h1 {
+            margin: 0;
+            text-align: center;
+            font-size: 26px;
+            color: #1e293b;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            margin: 10px 0 30px;
+        }
+
+        /* Upload area */
+        .drop-zone {
+            border: 2px dashed #94a3b8;
+            border-radius: 16px;
+            padding: 36px 25px;
+            text-align: center;
+            background: #f8fafc;
+            transition: all 0.25s ease;
+        }
+
+        .drop-zone.dragover,
+        .drop-zone:hover {
+            border-color: #334155;
+            background: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        .upload-icon {
+            font-size: 42px;
+            margin-bottom: 10px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+            }
+        }
+
+        .drop-zone h3 {
+            margin: 8px 0 6px;
+            color: #1e293b;
+            font-size: 17px;
+        }
+
+        .drop-zone p {
+            margin: 0 0 20px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* Visible browse button */
+        .browse-button {
+            display: inline-block;
+            padding: 11px 22px;
+            border-radius: 8px;
+            background: #334155;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .browse-button:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-name {
+            margin-top: 15px;
+            color: #475569;
+            font-size: 13px;
+            min-height: 18px;
+            word-break: break-word;
+        }
+
+        /* Status */
+        .status {
+            margin-top: 22px;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.processing {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .status.success {
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .status.error {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #cbd5e1;
+            border-top-color: #334155;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 25px;
+        }
+
+        .footer span {
+            margin: 0 6px;
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 28px 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+    ```
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        ```
+        <div class="logo">⚡</div>
+
+        <h1>Control Expert → PI Studio</h1>
+
+        <div class="subtitle">
+            Smart PLC variable converter
+        </div>
+
+        <!-- Upload Area -->
+        <div class="drop-zone" id="dropZone">
+
+            <div class="upload-icon">📂</div>
+
+            <h3>Drag & Drop your Excel file</h3>
+
+            <p>or select a Control Expert variables file from your computer</p>
+
+            <label for="excelFile" class="browse-button">
+                Browse File
+            </label>
+
+            <input type="file" id="excelFile" accept=".xlsx,.xls">
+
+            <div class="file-name" id="fileName"></div>
+
+        </div>
+
+        <!-- Status Area -->
+        <div id="status" class="status"></div>
+
+        <div class="footer">
+            Local Processing <span>•</span> No Server Upload <span>•</span> PI Studio Ready
+        </div>
+        ```
+
+    </div>
+
+    <script>
+
+        const fileInput = document.getElementById("excelFile");
+        const dropZone = document.getElementById("dropZone");
+        const statusBox = document.getElementById("status");
+        const fileNameBox = document.getElementById("fileName");
+
+
+        // ============================================
+        // FILE SELECTION
+        // ============================================
+
+        fileInput.addEventListener("change", function () {
+
+            if (this.files.length) {
+                handleFile(this.files[0]);
+            }
+
+        });
+
+
+        // ============================================
+        // DRAG AND DROP
+        // ============================================
+
+        ["dragenter", "dragover"].forEach(eventName => {
+
+            dropZone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                dropZone.classList.add("dragover");
+            });
+
+        });
+
+
+        ["dragleave", "drop"].forEach(eventName => {
+
+            dropZone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                dropZone.classList.remove("dragover");
+            });
+
+        });
+
+
+        dropZone.addEventListener("drop", function (event) {
+
+            const file = event.dataTransfer.files[0];
+
+            if (file) {
+                handleFile(file);
+            }
+
+        });
+
+
+        // ============================================
+        // HANDLE SELECTED FILE
+        // ============================================
+
+        function handleFile(file) {
+
+            const validExtensions = /\.(xlsx|xls)$/i;
+
+            if (!validExtensions.test(file.name)) {
+
+                showStatus(
+                    "⚠ Please select a valid Excel file (.xlsx or .xls).",
+                    "error"
+                );
+
+                return;
+            }
+
+            fileNameBox.textContent = "Selected: " + file.name;
+
+            convertExcel(file);
+
+        }
+
+
+        // ============================================
+        // SHOW STATUS
+        // ============================================
+
+        function showStatus(message, type) {
+
+            statusBox.className = "status show " + type;
+            statusBox.innerHTML = message;
+
+        }
+
+
+        // ============================================
+        // GET SORT VALUE FROM MODBUS ADDRESS
+        // ============================================
+
+        function getSortValue(address) {
+
+            // %M100
+            const bitMatch = address.match(/^%M(\d+)$/i);
+
+            if (bitMatch) {
+                return parseFloat(bitMatch[1]);
+            }
+
+
+            // %MW567 or %MW567.3
+            const wordMatch = address.match(/^%MW(\d+)(?:\.(\d+))?$/i);
+
+            if (wordMatch) {
+
+                const word = parseInt(wordMatch[1], 10);
+
+                // Decimal addresses are sorted immediately after
+                // their corresponding word address
+                const decimal = wordMatch[2]
+                    ? parseFloat("0." + wordMatch[2])
+                    : 0;
+
+                return word + decimal;
+            }
+
+
+            return Number.MAX_SAFE_INTEGER;
+
+        }
+
+
+        // ============================================
+        // MAIN CONVERSION
+        // ============================================
+
+        async function convertExcel(file) {
+
+            try {
+
+                showStatus(
+                    '<span class="spinner"></span> Reading and converting your Excel file...',
+                    "processing"
+                );
+
+                await new Promise(resolve => setTimeout(resolve, 250));
+
+
+                // Read source file
+                const buffer = await file.arrayBuffer();
+
+                const workbook = XLSX.read(buffer, {
+                    type: "array"
+                });
+
+
+                // Read first sheet
+                const worksheet =
+                    workbook.Sheets[workbook.SheetNames[0]];
+
+
+                const rows =
+                    XLSX.utils.sheet_to_json(
+                        worksheet,
+                        {
+                            defval: ""
+                        }
+                    );
+
+
+                const convertedTags = [];
+                let skippedCount = 0;
+
+
+                // ========================================
+                // CONVERT CONTROL EXPERT TAGS
+                // ========================================
+
+                rows.forEach((row, index) => {
+
+                    const name =
+                        String(row["Name"] || "").trim();
+
+                    const sourceAddress =
+                        String(row["Address"] || "")
+                            .trim()
+                            .toUpperCase();
+
+
+                    // Skip blank name or address
+                    if (!name || !sourceAddress) {
+                        skippedCount++;
+                        return;
+                    }
+
+
+                    let type = "";
+                    let piAddress = "";
+
+
+                    // ------------------------------------
+                    // %MW567.3 → X / 4567.3
+                    // IMPORTANT: Check decimal %MW first
+                    // ------------------------------------
+                    const mwDecimalMatch =
+                        sourceAddress.match(/^%MW(\d+)\.(\d+)$/);
+
+                    if (mwDecimalMatch) {
+
+                        const wordNumber = mwDecimalMatch[1];
+                        const bitNumber = mwDecimalMatch[2];
+
+                        type = "X";
+                        piAddress =
+                            "4" + wordNumber + "." + bitNumber;
+
+                    }
+
+
+                    // ------------------------------------
+                    // %MW100 → W / 4100
+                    // ------------------------------------
+                    else if (/^%MW\d+$/.test(sourceAddress)) {
+
+                        const number =
+                            sourceAddress.replace("%MW", "");
+
+                        type = "W";
+                        piAddress = "4" + number;
+
+                    }
+
+
+                    // ------------------------------------
+                    // %M100 → X / 0100
+                    // ------------------------------------
+                    else if (/^%M\d+$/.test(sourceAddress)) {
+
+                        const number =
+                            sourceAddress.replace("%M", "");
+
+                        type = "X";
+                        piAddress = "0" + number;
+
+                    }
+
+
+                    // Unsupported address
+                    else {
+
+                        skippedCount++;
+                        return;
+
+                    }
+
+
+                    // Store converted tag and original address
+                    // for correct Modbus sorting
+                    convertedTags.push({
+                        name: name,
+                        type: type,
+                        address: piAddress,
+                        originalAddress: sourceAddress,
+                        originalIndex: index
+                    });
+
+                });
+
+
+                // ========================================
+                // SORT BY MODBUS ADDRESS
+                // ========================================
+
+                convertedTags.sort((a, b) => {
+
+                    const aValue =
+                        getSortValue(a.originalAddress);
+
+                    const bValue =
+                        getSortValue(b.originalAddress);
+
+
+                    // Primary sorting by address
+                    if (aValue !== bValue) {
+                        return aValue - bValue;
+                    }
+
+
+                    // Keep original order if addresses are equal
+                    return a.originalIndex - b.originalIndex;
+
+                });
+
+
+                // ========================================
+                // CREATE OUTPUT DATA
+                // ========================================
+
+                const outputData = convertedTags.map(tag => ({
+                    "Name": tag.name,
+                    "Type": tag.type,
+                    "Address": tag.address,
+                    "ByteOrder": "0",
+                    "Extend1": "0",
+                    "Extend2": "0"
+                }));
+
+
+                // ========================================
+                // CREATE PI STUDIO WORKBOOK
+                // ========================================
+
+                const outputWorkbook =
+                    XLSX.utils.book_new();
+
+
+                const outputWorksheet =
+                    XLSX.utils.json_to_sheet(
+                        outputData,
+                        {
+                            header: [
+                                "Name",
+                                "Type",
+                                "Address",
+                                "ByteOrder",
+                                "Extend1",
+                                "Extend2"
+                            ]
+                        }
+                    );
+
+
+                // Force every cell to TEXT
+                Object.keys(outputWorksheet).forEach(
+                    cellAddress => {
+
+                        if (cellAddress.startsWith("!")) return;
+
+                        const cell =
+                            outputWorksheet[cellAddress];
+
+                        cell.t = "s";
+                        cell.v = String(cell.v ?? "");
+                        cell.z = "@";
+
+                    }
+                );
+
+
+                // Set reasonable column widths
+                outputWorksheet["!cols"] = [
+                    { wch: 40 },
+                    { wch: 10 },
+                    { wch: 16 },
+                    { wch: 12 },
+                    { wch: 12 },
+                    { wch: 12 }
+                ];
+
+
+                // PI Studio required sheet name
+                XLSX.utils.book_append_sheet(
+                    outputWorkbook,
+                    outputWorksheet,
+                    "DSO_DX"
+                );
+
+
+                // ========================================
+                // AUTOMATIC DOWNLOAD AS XLS
+                // ========================================
+
+                XLSX.writeFile(
+                    outputWorkbook,
+                    "PI_Studio_Converted.xls",
+                    {
+                        bookType: "biff8"
+                    }
+                );
+
+
+                // ========================================
+                // SUCCESS MESSAGE
+                // ========================================
+
+                showStatus(
+                    "✓ Conversion Complete!<br><br>" +
+                    "<strong>" + outputData.length +
+                    "</strong> tags converted &nbsp;•&nbsp; " +
+                    "<strong>" + skippedCount +
+                    "</strong> skipped<br><br>" +
+                    "Your PI Studio file has been downloaded automatically.",
+                    "success"
+                );
+
+            }
+            catch (error) {
+
+                console.error(error);
+
+                showStatus(
+                    "⚠ Conversion failed<br><br>" +
+                    error.message,
+                    "error"
+                );
+
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>
