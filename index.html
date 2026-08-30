@@ -1,180 +1,897 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Expert → PI Studio Converter | mahaboobtech</title>
 
-    ```
-    <title>Control Expert → PI Studio Converter</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
     <!-- SheetJS Excel Library -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
     <style>
+        :root {
+            --canvas-bg: #282c31;
+            --dashboard-bg: #0f1314;
+            --card-bg: rgba(22, 32, 30, 0.75);
+            --card-border: rgba(45, 212, 191, 0.2);
+            --card-border-dashed: rgba(45, 212, 191, 0.35);
+            --widget-header-bg: linear-gradient(135deg, rgba(45, 212, 191, 0.2), rgba(13, 148, 136, 0.35));
+
+            --text-white: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --emerald-mint: #2dd4bf;
+            --emerald-dark: #0f766e;
+            --purple-accent: #a78bfa;
+            --lime-accent: #a3e635;
+
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+        }
+
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
+        html,
         body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(135deg, #f1f5f9, #e8eef5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-
-        .container {
             width: 100%;
-            max-width: 580px;
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 42px;
-            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
-            animation: appear 0.5s ease-out;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--canvas-bg);
+            color: var(--text-white);
         }
 
-        @keyframes appear {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
+        /* Desktop, Laptop & Tablet: 100vh Viewport Fit without vertical scrollbar */
+        @media (min-width: 861px) {
+            html,
+            body {
+                height: 100vh;
+                max-height: 100vh;
+                overflow: hidden;
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 18px 36px 14px;
+            }
+
+            .dashboard-frame {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                max-width: 1180px;
+                margin: 0 auto;
+                width: 100%;
+                max-height: 95vh;
+                padding: 22px 30px 18px;
+            }
+
+            .main-content-split {
+                flex: 1;
+                display: flex;
+                align-items: center;
             }
         }
 
-        .logo {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 18px;
-            border-radius: 18px;
-            background: #eef2f7;
+        /* Mobile: Flexible height with scrolling allowed */
+        @media (max-width: 860px) {
+            html,
+            body {
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 14px 10px;
+            }
+
+            .dashboard-frame {
+                width: 100%;
+                padding: 20px 16px 18px;
+                border-radius: 22px;
+            }
+
+            .main-content-split {
+                margin: 16px 0;
+            }
+        }
+
+        /* Outer Dashboard Container Frame */
+        .dashboard-frame {
+            background: var(--dashboard-bg);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 35px 90px -10px rgba(0, 0, 0, 0.85);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ambient Glowing Emerald/Purple Auras */
+        .dashboard-frame::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.18) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .dashboard-frame::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            left: -100px;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.12) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Top Header Navigation */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .brand-logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-white);
+        }
+
+        .brand-icon-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--emerald-mint);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
-            animation: float 3s ease-in-out infinite;
+            color: #0d1716;
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+            transition: transform 0.25s ease;
         }
 
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-6px);
-            }
+        .brand-logo-wrapper:hover .brand-icon-circle {
+            transform: scale(1.08);
         }
 
-        h1 {
-            margin: 0;
-            text-align: center;
-            font-size: 26px;
-            color: #1e293b;
+        .brand-meta {
+            display: flex;
+            flex-direction: column;
         }
 
-        .subtitle {
-            text-align: center;
-            color: #64748b;
-            font-size: 14px;
-            margin: 10px 0 30px;
+        .brand-name {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            color: var(--text-white);
         }
 
-        /* Upload area */
-        .drop-zone {
-            border: 2px dashed #94a3b8;
-            border-radius: 16px;
-            padding: 36px 25px;
-            text-align: center;
-            background: #f8fafc;
+        .brand-tagline {
+            font-size: 11px;
+            color: var(--emerald-mint);
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-white);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
             transition: all 0.25s ease;
         }
 
-        .drop-zone.dragover,
-        .drop-zone:hover {
-            border-color: #334155;
-            background: #f1f5f9;
+        .nav-link-item:hover {
+            background: rgba(45, 212, 191, 0.15);
+            border-color: rgba(45, 212, 191, 0.4);
+            color: var(--emerald-mint);
             transform: translateY(-2px);
         }
 
-        .upload-icon {
-            font-size: 42px;
-            margin-bottom: 10px;
-            animation: pulse 2s ease-in-out infinite;
+        .nav-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 18px;
+            border-radius: 30px;
+            background: var(--emerald-mint);
+            color: #071311;
+            text-decoration: none;
+            font-size: 12.5px;
+            font-weight: 800;
+            box-shadow: 0 4px 16px rgba(45, 212, 191, 0.35);
+            transition: all 0.25s ease;
         }
 
-        @keyframes pulse {
+        .nav-cta-btn:hover {
+            background: #34d399;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(45, 212, 191, 0.5);
+        }
 
-            0%,
-            100% {
-                transform: scale(1);
+        /* ToffeeShare 2-Column Split Layout */
+        .toffeeshare-grid {
+            display: grid;
+            grid-template-columns: 330px 1fr;
+            gap: 32px;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (max-width: 1024px) {
+            .toffeeshare-grid {
+                grid-template-columns: 300px 1fr;
+                gap: 22px;
             }
+        }
 
-            50% {
-                transform: scale(1.08);
+        @media (max-width: 860px) {
+            .toffeeshare-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
             }
         }
 
-        .drop-zone h3 {
-            margin: 8px 0 6px;
-            color: #1e293b;
-            font-size: 17px;
-        }
-
-        .drop-zone p {
-            margin: 0 0 20px;
-            color: #64748b;
-            font-size: 13px;
-        }
-
-        /* Visible browse button */
-        .browse-button {
-            display: inline-block;
-            padding: 11px 22px;
-            border-radius: 8px;
-            background: #334155;
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
+        /* LEFT COLUMN: Square Drop Zone Card */
+        .upload-card-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px dashed var(--card-border-dashed);
+            border-radius: var(--radius-xl);
+            padding: 32px 18px;
+            text-align: center;
             cursor: pointer;
-            transition: transform 0.2s ease, opacity 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4);
         }
 
-        .browse-button:hover {
-            transform: translateY(-1px);
-            opacity: 0.9;
+        .upload-card-box:hover,
+        .upload-card-box.dragover {
+            border-color: var(--emerald-mint);
+            background: rgba(45, 212, 191, 0.1);
+            box-shadow: 0 0 30px rgba(45, 212, 191, 0.25);
+            transform: translateY(-3px);
+        }
+
+        .big-plus-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 2.5px solid var(--emerald-mint);
+            color: var(--emerald-mint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.3);
+        }
+
+        .upload-card-box:hover .big-plus-icon {
+            background: var(--emerald-mint);
+            color: #071311;
+            transform: scale(1.08);
+        }
+
+        .upload-label-main {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: var(--text-white);
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .upload-label-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .browse-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 24px;
+            border-radius: 30px;
+            background: var(--emerald-mint);
+            color: #071311;
+            font-size: 12.5px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(45, 212, 191, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .browse-pill-btn:hover {
+            background: #34d399;
+            transform: translateY(-2px);
         }
 
         input[type="file"] {
             display: none;
         }
 
-        .file-name {
-            margin-top: 15px;
-            color: #475569;
-            font-size: 13px;
-            min-height: 18px;
-            word-break: break-word;
+        .file-info {
+            font-size: 11.5px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--emerald-mint);
+            font-weight: 600;
+            min-height: 16px;
+            margin-top: 10px;
+            word-break: break-all;
         }
 
-        /* Status */
-        .status {
-            margin-top: 22px;
-            padding: 16px;
+        /* Compact Address Specs Bar Below Upload Card */
+        .address-specs-bar {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            font-size: 10.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .spec-item {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        .spec-item span.dst {
+            color: var(--emerald-mint);
+            font-weight: 600;
+        }
+
+        /* RIGHT COLUMN: Hero Info + VECTOR GRAPHIC ANIMATED VIDEO PLAYER */
+        .hero-info-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hero-headline {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            color: var(--text-white);
+        }
+
+        @media (max-width: 1024px) {
+            .hero-headline {
+                font-size: 22px;
+            }
+        }
+
+        .hero-description {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            font-weight: 400;
+        }
+
+        /* VECTOR MOTION GRAPHIC VIDEO ANIMATION PLAYER WIDGET */
+        .vector-video-box {
+            background: rgba(8, 12, 18, 0.9);
+            border: 1.5px solid rgba(45, 212, 191, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vector-player-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ef4444; }
+        .dot.yellow { background: #f59e0b; }
+        .dot.green { background: #10b981; }
+
+        .video-scene-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .scene-tab {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 4px 10px;
             border-radius: 12px;
-            font-size: 14px;
+            font-size: 10.5px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .scene-tab.active {
+            background: rgba(45, 212, 191, 0.2);
+            border-color: var(--emerald-mint);
+            color: var(--emerald-mint);
+            box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
+        }
+
+        .player-toggle-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-white);
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 10.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .player-toggle-btn:hover {
+            background: rgba(45, 212, 191, 0.2);
+            color: var(--emerald-mint);
+        }
+
+        /* VECTOR ANIMATION SCREEN STAGE */
+        .vector-stage-screen {
+            background: #090e14;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            height: 145px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vector-scene {
+            position: absolute;
+            inset: 0;
+            padding: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .vector-scene.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Vector UI App Windows */
+        .vector-app-window {
+            background: #111822;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vector-app-window.excel-theme {
+            border-color: rgba(163, 230, 53, 0.3);
+        }
+
+        .vector-app-window.convert-theme {
+            border-color: rgba(45, 212, 191, 0.4);
+            background: rgba(15, 23, 22, 0.95);
+        }
+
+        .app-topbar {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 10px;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--text-white);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .app-workspace {
+            padding: 10px;
+            position: relative;
+            flex: 1;
+        }
+
+        .tree-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 11px;
+        }
+
+        .tree-item {
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tree-item.active-target {
+            background: rgba(45, 212, 191, 0.18);
+            color: var(--emerald-mint);
+            font-weight: 700;
+            border: 1px solid rgba(45, 212, 191, 0.3);
+        }
+
+        /* Animated Vector Cursor */
+        .vector-cursor {
+            position: absolute;
+            top: 22px;
+            left: 120px;
+            color: #ffffff;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.8));
+            animation: cursorMove1 4s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        @keyframes cursorMove1 {
+            0% { top: 60px; left: 240px; opacity: 0; }
+            20% { top: 22px; left: 120px; opacity: 1; }
+            35% { transform: scale(0.85); }
+            45% { transform: scale(1); }
+            100% { top: 22px; left: 120px; opacity: 1; }
+        }
+
+        /* Animated Context Menu Scene 1 */
+        .context-menu-popup {
+            position: absolute;
+            top: 28px;
+            left: 100px;
+            background: #1e293b;
+            border: 1px solid var(--emerald-mint);
+            border-radius: 6px;
+            padding: 4px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+            font-size: 10.5px;
+            animation: menuPop1 4s ease-in-out infinite;
+            z-index: 5;
+        }
+
+        @keyframes menuPop1 {
+            0%, 30% { opacity: 0; transform: scale(0.9); }
+            40%, 90% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; }
+        }
+
+        .menu-opt {
+            padding: 3px 10px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .menu-opt.highlight {
+            background: var(--emerald-mint);
+            color: #071311;
+            font-weight: 800;
+        }
+
+        /* Flying File Icon */
+        .flying-file {
+            position: absolute;
+            bottom: 10px;
+            right: 14px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--emerald-mint);
+            border-radius: 8px;
+            padding: 4px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10.5px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--emerald-mint);
+            box-shadow: 0 0 15px rgba(45, 212, 191, 0.4);
+            animation: fileFly1 4s ease-in-out infinite;
+        }
+
+        @keyframes fileFly1 {
+            0%, 55% { opacity: 0; transform: translateY(15px); }
+            70%, 95% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; }
+        }
+
+        /* Scene 2 Excel Macro Tool Styling */
+        .excel-toolbar {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .xl-tab {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--lime-accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .xl-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-white);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: 700;
+        }
+
+        .xl-btn.primary {
+            background: var(--lime-accent);
+            color: #071311;
+            font-weight: 800;
+            border: none;
+        }
+
+        .excel-grid-preview {
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 9.5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .xl-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            padding: 3px 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 3px;
+            color: var(--text-secondary);
+        }
+
+        .xl-row.header {
+            background: rgba(163, 230, 53, 0.15);
+            color: var(--lime-accent);
+            font-weight: 800;
+        }
+
+        /* Cursor Scene 2 Animation */
+        .cursor-anim-2 {
+            top: 24px;
+            left: 120px;
+            animation: cursorMove2 4s ease-in-out infinite;
+        }
+
+        @keyframes cursorMove2 {
+            0% { top: 60px; left: 200px; opacity: 0; }
+            20% { top: 24px; left: 120px; opacity: 1; }
+            35% { transform: scale(0.85); }
+            45% { top: 24px; left: 190px; transform: scale(0.85); }
+            60% { transform: scale(1); }
+            100% { top: 24px; left: 190px; opacity: 1; }
+        }
+
+        .file-anim-2 {
+            border-color: var(--lime-accent);
+            color: var(--lime-accent);
+            box-shadow: 0 0 15px rgba(163, 230, 53, 0.4);
+            animation: fileFly2 4s ease-in-out infinite;
+        }
+
+        @keyframes fileFly2 {
+            0%, 60% { opacity: 0; transform: translateY(15px); }
+            75%, 95% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; }
+        }
+
+        /* Scene 3 Vector Dropzone Styling */
+        .vector-dropzone-box {
+            margin: 12px auto;
+            width: 80%;
+            border: 2px dashed rgba(45, 212, 191, 0.4);
+            border-radius: 10px;
+            padding: 10px;
             text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--emerald-mint);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dropping-file {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--lime-accent);
+            color: var(--lime-accent);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: dropMotion 4s ease-in-out infinite;
+        }
+
+        @keyframes dropMotion {
+            0% { top: -20px; opacity: 0; }
+            40% { top: 38px; opacity: 1; }
+            60% { top: 38px; opacity: 0; }
+            100% { top: 38px; opacity: 0; }
+        }
+
+        .converted-result-card {
+            position: absolute;
+            bottom: 8px;
+            left: 10px;
+            right: 10px;
+            background: rgba(45, 212, 191, 0.15);
+            border: 1px solid var(--emerald-mint);
+            border-radius: 6px;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--emerald-mint);
+            font-weight: 700;
+            animation: resultPop 4s ease-in-out infinite;
+        }
+
+        @keyframes resultPop {
+            0%, 55% { opacity: 0; transform: translateY(10px); }
+            70%, 95% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; }
+        }
+
+        /* Scene Caption Bar */
+        .vector-caption-bar {
+            margin-top: 10px;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(45, 212, 191, 0.25);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .caption-step-num {
+            background: var(--emerald-mint);
+            color: #071311;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        .caption-text {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* 2-Column Feature Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 16px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-white);
+        }
+
+        .feature-icon-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: rgba(45, 212, 191, 0.12);
+            border: 1px solid rgba(45, 212, 191, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--emerald-mint);
+            flex-shrink: 0;
+        }
+
+        .feature-icon-box svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        /* Status Banner */
+        .status {
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            line-height: 1.45;
             display: none;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.25s ease;
+            word-break: break-word;
         }
 
         .status.show {
@@ -182,24 +899,27 @@
         }
 
         .status.processing {
-            background: #f1f5f9;
-            color: #334155;
+            background: rgba(45, 212, 191, 0.12);
+            border: 1px solid rgba(45, 212, 191, 0.3);
+            color: var(--emerald-mint);
         }
 
         .status.success {
-            background: #f0fdf4;
-            color: #166534;
+            background: rgba(163, 230, 53, 0.12);
+            border: 1px solid rgba(163, 230, 53, 0.3);
+            color: var(--lime-accent);
         }
 
         .status.error {
-            background: #fef2f2;
-            color: #b91c1c;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(8px);
+                transform: translateY(6px);
             }
 
             to {
@@ -209,14 +929,14 @@
         }
 
         .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid #cbd5e1;
-            border-top-color: #334155;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(45, 212, 191, 0.3);
+            border-top-color: var(--emerald-mint);
             border-radius: 50%;
             display: inline-block;
             vertical-align: middle;
-            margin-right: 8px;
+            margin-right: 6px;
             animation: spin 0.8s linear infinite;
         }
 
@@ -226,210 +946,473 @@
             }
         }
 
-        .footer {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 12px;
-            margin-top: 25px;
+        /* Bottom Footer Bar */
+        .bottom-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 11.5px;
+            color: var(--text-dim);
+            z-index: 10;
+            position: relative;
         }
 
-        .footer span {
-            margin: 0 6px;
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        @media (max-width: 500px) {
-            .container {
-                padding: 28px 20px;
+        .footer-link {
+            color: var(--emerald-mint);
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
             }
 
-            h1 {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bottom-footer {
+                flex-direction: column;
+                gap: 6px;
+                text-align: center;
+            }
+
+            .hero-headline {
                 font-size: 22px;
             }
         }
     </style>
-    ```
-
 </head>
 
 <body>
 
-    <div class="container">
+    <!-- Outer Dashboard Frame (Tablet Frame with Emerald Theme) -->
+    <div class="dashboard-frame">
 
-        ```
-        <div class="logo">⚡</div>
+        <!-- Top Navigation Header -->
+        <header class="top-nav">
+            <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="brand-logo-wrapper">
+                <div class="brand-icon-circle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                </div>
+                <div class="brand-meta">
+                    <span class="brand-name">Control Expert → PI Studio Converter</span>
+                    <span class="brand-tagline">Schneider PLC to WECON HMI Tag Format</span>
+                </div>
+            </a>
 
-        <h1>Control Expert → PI Studio</h1>
+            <div class="nav-links">
+                <a href="https://github.com/mahaboobtech" target="_blank" rel="noopener" class="nav-link-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    GitHub
+                </a>
+                <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="nav-cta-btn">
+                    <span>MahaboobTech</span>
+                </a>
+            </div>
+        </header>
 
-        <div class="subtitle">
-            Smart PLC variable converter
+        <!-- Main Split Container (ToffeeShare 2-Column Format) -->
+        <div class="main-content-split">
+            <div class="toffeeshare-grid">
+
+                <!-- LEFT COLUMN: Square Upload Box -->
+                <div class="upload-column">
+                    <div class="upload-card-box drop-zone" id="dropZone">
+                        <div class="big-plus-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                        </div>
+                        <div class="upload-label-main">Click to browse or drag files here to start converting</div>
+                        <div class="upload-label-sub">Supports Schneider Control Expert (.xlsx, .xls)</div>
+
+                        <label for="excelFile" class="browse-pill-btn">
+                            <span>Browse File</span>
+                        </label>
+                        <input type="file" id="excelFile" accept=".xlsx,.xls">
+
+                        <div class="file-info" id="fileName"></div>
+                    </div>
+
+                    <!-- Compact Address Specs Bar -->
+                    <div class="address-specs-bar">
+                        <span class="spec-item">%MW100 → <span class="dst">W/4100</span></span>
+                        <span>•</span>
+                        <span class="spec-item">%MW100.3 → <span class="dst">X/4100.3</span></span>
+                        <span>•</span>
+                        <span class="spec-item">%M100 → <span class="dst">X/0100</span></span>
+                    </div>
+
+                    <!-- Status Alert Box -->
+                    <div id="status" class="status"></div>
+                </div>
+
+                <!-- RIGHT COLUMN: Hero Info + VECTOR GRAPHIC ANIMATED VIDEO PLAYER -->
+                <div class="hero-info-column">
+                    <h1 class="hero-headline">Convert Schneider PLC variables to WECON PI Studio format</h1>
+                    <p class="hero-description">Transform Control Expert export files into WECON HMI compatible tags instantly.</p>
+
+                    <!-- VECTOR MOTION GRAPHIC VIDEO ANIMATION WIDGET -->
+                    <div class="vector-video-box">
+                        <div class="vector-player-header">
+                            <div class="window-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <div class="video-scene-tabs">
+                                <button class="scene-tab active" data-scene="1">1. Export .XSY</button>
+                                <button class="scene-tab" data-scene="2">2. Macro Tool</button>
+                                <button class="scene-tab" data-scene="3">3. Convert HMI</button>
+                            </div>
+                            <button class="player-toggle-btn" id="vectorPlayPause">⏸ Auto Play</button>
+                        </div>
+
+                        <!-- Main Vector Animation Screen -->
+                        <div class="vector-stage-screen">
+                            <!-- Scene 1: Control Expert Vector UI -->
+                            <div class="vector-scene scene-1 active" id="scene1">
+                                <div class="vector-app-window">
+                                    <div class="app-topbar">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                        <span>EcoStruxure Control Expert</span>
+                                    </div>
+                                    <div class="app-workspace">
+                                        <div class="tree-menu">
+                                            <div class="tree-item">Project Browser</div>
+                                            <div class="tree-item active-target">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                                                FB Variables & instances
+                                            </div>
+                                        </div>
+                                        <!-- Vector Animated Mouse Cursor -->
+                                        <div class="vector-cursor cursor-anim-1">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7 18 3-7 7-3L3 3z"/></svg>
+                                        </div>
+                                        <!-- Popup Context Menu -->
+                                        <div class="context-menu-popup menu-anim-1">
+                                            <div class="menu-opt">Copy</div>
+                                            <div class="menu-opt highlight">Export (.XSY)...</div>
+                                        </div>
+                                        <!-- Flying .XSY File Icon -->
+                                        <div class="flying-file file-anim-1">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                            <span>Variables.XSY</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Scene 2: Unity Variables Management Macro Tool UI -->
+                            <div class="vector-scene scene-2" id="scene2">
+                                <div class="vector-app-window excel-theme">
+                                    <div class="app-topbar">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h8"/></svg>
+                                        <span>Unity Variables Management.xlsm</span>
+                                    </div>
+                                    <div class="excel-toolbar">
+                                        <span class="xl-tab">XSY Management</span>
+                                        <button class="xl-btn target-click-2">Open .XSY File</button>
+                                        <button class="xl-btn primary target-save-2">Save Sheet</button>
+                                    </div>
+                                    <div class="excel-grid-preview">
+                                        <div class="xl-row header"><span>Name</span><span>Type</span><span>Address</span></div>
+                                        <div class="xl-row row-1"><span>Motor_Start</span><span>EBOOL</span><span>%MW100.3</span></div>
+                                        <div class="xl-row row-2"><span>Speed_Set</span><span>INT</span><span>%MW100</span></div>
+                                    </div>
+                                    <!-- Vector Cursor Scene 2 -->
+                                    <div class="vector-cursor cursor-anim-2">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7 18 3-7 7-3L3 3z"/></svg>
+                                    </div>
+                                    <!-- Flying Excel Output File -->
+                                    <div class="flying-file file-anim-2">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        <span>Export.xlsx</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Scene 3: Converter Tool Drag & Drop UI -->
+                            <div class="vector-scene scene-3" id="scene3">
+                                <div class="vector-app-window convert-theme">
+                                    <div class="app-topbar">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                        <span>WECON PI Studio Tag Converter</span>
+                                    </div>
+                                    <div class="vector-dropzone-box">
+                                        <div class="vector-drop-icon">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        </div>
+                                        <span>Drop Excel File Here</span>
+                                    </div>
+                                    <!-- Flying File into Dropzone -->
+                                    <div class="dropping-file file-anim-3">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        <span>Export.xlsx</span>
+                                    </div>
+                                    <!-- Converted Result Card -->
+                                    <div class="converted-result-card result-anim-3">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                        <span>Downloaded PI_Studio_Converted.xls (DSO_DX)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scene Caption Bar -->
+                        <div class="vector-caption-bar">
+                            <span class="caption-step-num" id="sceneNum">1 / 3</span>
+                            <span class="caption-text" id="sceneCaption">Right-click FB Variables & instances in Control Expert → Export (.XSY)</span>
+                        </div>
+                    </div>
+
+                    <!-- 2-Column Feature Grid -->
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <div class="feature-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                </svg>
+                            </div>
+                            <span>100% Client-Side Processing</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                </svg>
+                            </div>
+                            <span>Blazingly Fast Conversion</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <polyline points="19 12 12 19 5 12" />
+                                </svg>
+                            </div>
+                            <span>Modbus Address Auto-Sort</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                            </div>
+                            <span>DSO_DX BIFF8 Output</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
         </div>
 
-        <!-- Upload Area -->
-        <div class="drop-zone" id="dropZone">
-
-            <div class="upload-icon">📂</div>
-
-            <h3>Drag & Drop your Excel file</h3>
-
-            <p>or select a Control Expert variables file from your computer</p>
-
-            <label for="excelFile" class="browse-button">
-                Browse File
-            </label>
-
-            <input type="file" id="excelFile" accept=".xlsx,.xls">
-
-            <div class="file-name" id="fileName"></div>
-
-        </div>
-
-        <!-- Status Area -->
-        <div id="status" class="status"></div>
-
-        <div class="footer">
-            Local Processing <span>•</span> No Server Upload <span>•</span> PI Studio Ready
-        </div>
-        ```
+        <!-- Bottom Footer Bar -->
+        <footer class="bottom-footer">
+            <div class="footer-left">
+                <span>Developed by</span>
+                <a href="https://github.com/mahaboobtech" target="_blank" rel="noopener" class="footer-link">
+                    @mahaboobtech
+                </a>
+                <span>•</span>
+                <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="footer-link">
+                    mahaboobtech.in
+                </a>
+            </div>
+            <div class="copyright">
+                © 2026 mahaboobtech. All rights reserved.
+            </div>
+        </footer>
 
     </div>
 
     <script>
-
         const fileInput = document.getElementById("excelFile");
         const dropZone = document.getElementById("dropZone");
         const statusBox = document.getElementById("status");
         const fileNameBox = document.getElementById("fileName");
 
+        // VECTOR ANIMATION SCENE CONTROLLER LOGIC
+        const sceneData = [
+            {
+                id: 1,
+                num: "1 / 3",
+                caption: "1. Control Expert: Right-click 'FB Variables & instances' → Export (.XSY file)"
+            },
+            {
+                id: 2,
+                num: "2 / 3",
+                caption: "2. Macro Tool: Open Unity Variables Management.xlsm → Import .XSY → Click Save Sheet"
+            },
+            {
+                id: 3,
+                num: "3 / 3",
+                caption: "3. Convert Here: Drop saved Excel file on left to download WECON PI Studio (.xls)"
+            }
+        ];
 
-        // ============================================
-        // FILE SELECTION
-        // ============================================
+        let activeSceneIndex = 0;
+        let isVectorPlaying = true;
+        let vectorTimer = null;
 
+        const sceneTabs = document.querySelectorAll(".scene-tab");
+        const vectorPlayPause = document.getElementById("vectorPlayPause");
+        const sceneNum = document.getElementById("sceneNum");
+        const sceneCaption = document.getElementById("sceneCaption");
+
+        function switchVectorScene(index) {
+            activeSceneIndex = index;
+            const data = sceneData[index];
+
+            sceneNum.textContent = data.num;
+            sceneCaption.textContent = data.caption;
+
+            sceneTabs.forEach((tab, tIdx) => {
+                if (tIdx === index) {
+                    tab.classList.add("active");
+                } else {
+                    tab.classList.remove("active");
+                }
+            });
+
+            document.querySelectorAll(".vector-scene").forEach((scene, sIdx) => {
+                if (sIdx === index) {
+                    scene.classList.add("active");
+                } else {
+                    scene.classList.remove("active");
+                }
+            });
+        }
+
+        function startVectorTimer() {
+            stopVectorTimer();
+            vectorTimer = setInterval(() => {
+                let nextIdx = (activeSceneIndex + 1) % sceneData.length;
+                switchVectorScene(nextIdx);
+            }, 4000);
+        }
+
+        function stopVectorTimer() {
+            if (vectorTimer) {
+                clearInterval(vectorTimer);
+                vectorTimer = null;
+            }
+        }
+
+        vectorPlayPause.addEventListener("click", () => {
+            isVectorPlaying = !isVectorPlaying;
+            if (isVectorPlaying) {
+                vectorPlayPause.textContent = "⏸ Auto Play";
+                startVectorTimer();
+            } else {
+                vectorPlayPause.textContent = "▶ Play";
+                stopVectorTimer();
+            }
+        });
+
+        sceneTabs.forEach(tab => {
+            tab.addEventListener("click", function() {
+                const targetScene = parseInt(this.getAttribute("data-scene"), 10) - 1;
+                switchVectorScene(targetScene);
+                if (isVectorPlaying) startVectorTimer();
+            });
+        });
+
+        // Initialize Vector Scene Auto Play
+        switchVectorScene(0);
+        startVectorTimer();
+
+        // Excel File Drag & Drop logic
         fileInput.addEventListener("change", function () {
-
             if (this.files.length) {
                 handleFile(this.files[0]);
             }
-
         });
 
-
-        // ============================================
-        // DRAG AND DROP
-        // ============================================
-
         ["dragenter", "dragover"].forEach(eventName => {
-
             dropZone.addEventListener(eventName, function (event) {
                 event.preventDefault();
                 dropZone.classList.add("dragover");
             });
-
         });
 
-
         ["dragleave", "drop"].forEach(eventName => {
-
             dropZone.addEventListener(eventName, function (event) {
                 event.preventDefault();
                 dropZone.classList.remove("dragover");
             });
-
         });
 
-
         dropZone.addEventListener("drop", function (event) {
-
             const file = event.dataTransfer.files[0];
-
             if (file) {
                 handleFile(file);
             }
-
         });
 
-
-        // ============================================
-        // HANDLE SELECTED FILE
-        // ============================================
-
         function handleFile(file) {
-
             const validExtensions = /\.(xlsx|xls)$/i;
-
             if (!validExtensions.test(file.name)) {
-
                 showStatus(
-                    "⚠ Please select a valid Excel file (.xlsx or .xls).",
+                    "Please select a valid Excel file (.xlsx or .xls).",
                     "error"
                 );
-
                 return;
             }
 
-            fileNameBox.textContent = "Selected: " + file.name;
-
+            fileNameBox.textContent = "Selected file: " + file.name;
             convertExcel(file);
-
         }
-
-
-        // ============================================
-        // SHOW STATUS
-        // ============================================
 
         function showStatus(message, type) {
-
             statusBox.className = "status show " + type;
             statusBox.innerHTML = message;
-
         }
 
-
-        // ============================================
-        // GET SORT VALUE FROM MODBUS ADDRESS
-        // ============================================
-
         function getSortValue(address) {
-
-            // %M100
             const bitMatch = address.match(/^%M(\d+)$/i);
-
             if (bitMatch) {
                 return parseFloat(bitMatch[1]);
             }
 
-
-            // %MW567 or %MW567.3
             const wordMatch = address.match(/^%MW(\d+)(?:\.(\d+))?$/i);
-
             if (wordMatch) {
-
                 const word = parseInt(wordMatch[1], 10);
-
-                // Decimal addresses are sorted immediately after
-                // their corresponding word address
-                const decimal = wordMatch[2]
-                    ? parseFloat("0." + wordMatch[2])
-                    : 0;
-
+                const decimal = wordMatch[2] ? parseFloat("0." + wordMatch[2]) : 0;
                 return word + decimal;
             }
 
-
             return Number.MAX_SAFE_INTEGER;
-
         }
 
-
-        // ============================================
-        // MAIN CONVERSION
-        // ============================================
-
         async function convertExcel(file) {
-
             try {
-
                 showStatus(
                     '<span class="spinner"></span> Reading and converting your Excel file...',
                     "processing"
@@ -437,117 +1420,48 @@
 
                 await new Promise(resolve => setTimeout(resolve, 250));
 
-
-                // Read source file
                 const buffer = await file.arrayBuffer();
-
-                const workbook = XLSX.read(buffer, {
-                    type: "array"
-                });
-
-
-                // Read first sheet
-                const worksheet =
-                    workbook.Sheets[workbook.SheetNames[0]];
-
-
-                const rows =
-                    XLSX.utils.sheet_to_json(
-                        worksheet,
-                        {
-                            defval: ""
-                        }
-                    );
-
+                const workbook = XLSX.read(buffer, { type: "array" });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
                 const convertedTags = [];
                 let skippedCount = 0;
 
-
-                // ========================================
-                // CONVERT CONTROL EXPERT TAGS
-                // ========================================
-
                 rows.forEach((row, index) => {
+                    const name = String(row["Name"] || "").trim();
+                    const sourceAddress = String(row["Address"] || "").trim().toUpperCase();
 
-                    const name =
-                        String(row["Name"] || "").trim();
-
-                    const sourceAddress =
-                        String(row["Address"] || "")
-                            .trim()
-                            .toUpperCase();
-
-
-                    // Skip blank name or address
                     if (!name || !sourceAddress) {
                         skippedCount++;
                         return;
                     }
 
-
                     let type = "";
                     let piAddress = "";
 
-
-                    // ------------------------------------
-                    // %MW567.3 → X / 4567.3
-                    // IMPORTANT: Check decimal %MW first
-                    // ------------------------------------
-                    const mwDecimalMatch =
-                        sourceAddress.match(/^%MW(\d+)\.(\d+)$/);
-
+                    const mwDecimalMatch = sourceAddress.match(/^%MW(\d+)\.(\d+)$/);
                     if (mwDecimalMatch) {
-
                         const wordNumber = mwDecimalMatch[1];
                         const bitNumber = mwDecimalMatch[2];
-
                         type = "X";
-                        piAddress =
-                            "4" + wordNumber + "." + bitNumber;
-
+                        piAddress = "4" + wordNumber + "." + bitNumber;
                     }
-
-
-                    // ------------------------------------
-                    // %MW100 → W / 4100
-                    // ------------------------------------
                     else if (/^%MW\d+$/.test(sourceAddress)) {
-
-                        const number =
-                            sourceAddress.replace("%MW", "");
-
+                        const number = sourceAddress.replace("%MW", "");
                         type = "W";
                         piAddress = "4" + number;
-
                     }
-
-
-                    // ------------------------------------
-                    // %M100 → X / 0100
-                    // ------------------------------------
                     else if (/^%M\d+$/.test(sourceAddress)) {
-
-                        const number =
-                            sourceAddress.replace("%M", "");
-
+                        const number = sourceAddress.replace("%M", "");
                         type = "X";
                         piAddress = "0" + number;
-
                     }
-
-
-                    // Unsupported address
                     else {
-
                         skippedCount++;
                         return;
-
                     }
 
-
-                    // Store converted tag and original address
-                    // for correct Modbus sorting
                     convertedTags.push({
                         name: name,
                         type: type,
@@ -555,38 +1469,16 @@
                         originalAddress: sourceAddress,
                         originalIndex: index
                     });
-
                 });
 
-
-                // ========================================
-                // SORT BY MODBUS ADDRESS
-                // ========================================
-
                 convertedTags.sort((a, b) => {
-
-                    const aValue =
-                        getSortValue(a.originalAddress);
-
-                    const bValue =
-                        getSortValue(b.originalAddress);
-
-
-                    // Primary sorting by address
+                    const aValue = getSortValue(a.originalAddress);
+                    const bValue = getSortValue(b.originalAddress);
                     if (aValue !== bValue) {
                         return aValue - bValue;
                     }
-
-
-                    // Keep original order if addresses are equal
                     return a.originalIndex - b.originalIndex;
-
                 });
-
-
-                // ========================================
-                // CREATE OUTPUT DATA
-                // ========================================
 
                 const outputData = convertedTags.map(tag => ({
                     "Name": tag.name,
@@ -597,49 +1489,19 @@
                     "Extend2": "0"
                 }));
 
+                const outputWorkbook = XLSX.utils.book_new();
+                const outputWorksheet = XLSX.utils.json_to_sheet(outputData, {
+                    header: ["Name", "Type", "Address", "ByteOrder", "Extend1", "Extend2"]
+                });
 
-                // ========================================
-                // CREATE PI STUDIO WORKBOOK
-                // ========================================
+                Object.keys(outputWorksheet).forEach(cellAddress => {
+                    if (cellAddress.startsWith("!")) return;
+                    const cell = outputWorksheet[cellAddress];
+                    cell.t = "s";
+                    cell.v = String(cell.v ?? "");
+                    cell.z = "@";
+                });
 
-                const outputWorkbook =
-                    XLSX.utils.book_new();
-
-
-                const outputWorksheet =
-                    XLSX.utils.json_to_sheet(
-                        outputData,
-                        {
-                            header: [
-                                "Name",
-                                "Type",
-                                "Address",
-                                "ByteOrder",
-                                "Extend1",
-                                "Extend2"
-                            ]
-                        }
-                    );
-
-
-                // Force every cell to TEXT
-                Object.keys(outputWorksheet).forEach(
-                    cellAddress => {
-
-                        if (cellAddress.startsWith("!")) return;
-
-                        const cell =
-                            outputWorksheet[cellAddress];
-
-                        cell.t = "s";
-                        cell.v = String(cell.v ?? "");
-                        cell.z = "@";
-
-                    }
-                );
-
-
-                // Set reasonable column widths
                 outputWorksheet["!cols"] = [
                     { wch: 40 },
                     { wch: 10 },
@@ -649,59 +1511,22 @@
                     { wch: 12 }
                 ];
 
+                XLSX.utils.book_append_sheet(outputWorkbook, outputWorksheet, "DSO_DX");
 
-                // PI Studio required sheet name
-                XLSX.utils.book_append_sheet(
-                    outputWorkbook,
-                    outputWorksheet,
-                    "DSO_DX"
-                );
-
-
-                // ========================================
-                // AUTOMATIC DOWNLOAD AS XLS
-                // ========================================
-
-                XLSX.writeFile(
-                    outputWorkbook,
-                    "PI_Studio_Converted.xls",
-                    {
-                        bookType: "biff8"
-                    }
-                );
-
-
-                // ========================================
-                // SUCCESS MESSAGE
-                // ========================================
+                XLSX.writeFile(outputWorkbook, "PI_Studio_Converted.xls", { bookType: "biff8" });
 
                 showStatus(
-                    "✓ Conversion Complete!<br><br>" +
-                    "<strong>" + outputData.length +
-                    "</strong> tags converted &nbsp;•&nbsp; " +
-                    "<strong>" + skippedCount +
-                    "</strong> skipped<br><br>" +
-                    "Your PI Studio file has been downloaded automatically.",
+                    "<strong>Conversion Complete</strong><br>" +
+                    "Successfully converted <strong>" + outputData.length + "</strong> tags (skipped " + skippedCount + ")<br>" +
+                    "File downloaded automatically as <strong>PI_Studio_Converted.xls</strong>",
                     "success"
                 );
-
-            }
-            catch (error) {
-
+            } catch (error) {
                 console.error(error);
-
-                showStatus(
-                    "⚠ Conversion failed<br><br>" +
-                    error.message,
-                    "error"
-                );
-
+                showStatus("Conversion failed: " + error.message, "error");
             }
-
         }
-
     </script>
-
 </body>
 
 </html>

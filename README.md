@@ -1,26 +1,30 @@
-# controlexpert-to-pi-studio-tags-convertor
+# Control Expert → PI Studio Converter
 
-A web-based converter tool to transform Schneider Electric **Control Expert** PLC variables (Excel/Export format) into **PI Studio** (Wintek / Weinview / PI Studio HMI) compatible tag format.
+A modern, web-based converter tool to transform Schneider Electric **Control Expert** PLC variables (Excel/Export format) into **WECON PI Studio HMI** compatible tag format (`DSO_DX`).
 
-## 🚀 Live Web App (GitHub Pages)
+---
+
+## 🌐 Live Web App (GitHub Pages)
 👉 **[https://mahaboobtech.github.io/controlexpert-to-pi-studio-tags-convertor/](https://mahaboobtech.github.io/controlexpert-to-pi-studio-tags-convertor/)**
 
 ---
 
-## ✨ Features
-- **Client-Side Security**: All conversions take place locally in your browser. No files are uploaded to any server.
-- **Excel Input (.xlsx / .xls)**: Upload your Control Expert export file easily via drag-and-drop or file picker.
+## ⚡ Features & Address Rules
+- **100% Client-Side & Private**: Conversion runs entirely inside your browser. No files are uploaded to any server.
 - **Automatic Address Mapping**:
-  - `%MW100` $\rightarrow$ `40100` (`4` type)
-  - `%M100` $\rightarrow$ `00100` (`X` type)
-- **PI Studio Ready**: Generates a `.xls` file with the exact sheet format (`DSO_DX`) required by PI Studio.
+  - `%MW100` $\rightarrow$ `W` / `4100`
+  - `%MW100.3` $\rightarrow$ `X` / `4100.3`
+  - `%M100` $\rightarrow$ `X` / `0100`
+- **Modbus Sorting**: Automatically sorts converted tags by Modbus address order.
+- **Direct PI Studio Export**: Generates `.xls` file formatted with required `DSO_DX` sheet name and forced text encoding (`@`).
 
 ---
 
-## ⚙️ Enabling GitHub Pages
-1. Go to your repository on GitHub: `https://github.com/mahaboobtech/controlexpert-to-pi-studio-tags-convertor`
-2. Open **Settings** $\rightarrow$ **Pages** (under Code and automation).
-3. Under **Build and deployment**:
-   - **Source**: Select `Deploy from a branch`
-   - **Branch**: Select `main` and `/ (root)`
-4. Click **Save**.
+## 👨‍💻 Developer & Branding
+- **Official Website**: [mahaboobtech.in](https://mahaboobtech.in)
+- **GitHub Profile**: [@mahaboobtech](https://github.com/mahaboobtech)
+
+---
+
+## 📄 License & Copyright
+© 2026 **mahaboobtech**. Licensed under the [MIT License](LICENSE).
