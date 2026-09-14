@@ -649,18 +649,20 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-top: 20px;
+            padding-top: 14px;
+            margin-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
-            font-size: 12px;
+            font-size: 11.5px;
             color: var(--text-dim);
             flex-wrap: wrap;
             gap: 12px;
         }
 
-        .footer-left {
+        .footer-left,
+        .footer-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .footer-link {
@@ -700,8 +702,22 @@
             }
 
             .bottom-footer {
-                flex-direction: column;
-                text-align: center;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                gap: 8px !important;
+                padding-top: 14px !important;
+            }
+
+            .footer-left, .footer-right {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                flex-wrap: wrap !important;
+                gap: 4px 6px !important;
+                width: 100% !important;
             }
         }
 
@@ -1002,14 +1018,14 @@
             </div>
         </section>
 
-        <!-- Footer -->
+        <!-- Bottom Footer Bar -->
         <footer class="bottom-footer">
             <div class="footer-left">
-                <span>Created with ❤️ for Automation Engineers by</span>
+                <span>Developed with ❤️ by</span>
                 <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="footer-link">MahaboobTech</a>
             </div>
-            <div>
-                <span>GitHub Repository: </span>
+            <div class="footer-right">
+                <span>GitHub Repository:</span>
                 <a href="https://github.com/mahaboobtech/plc-tags-converter" target="_blank" rel="noopener" class="footer-link">mahaboobtech/plc-tags-converter</a>
             </div>
         </footer>
