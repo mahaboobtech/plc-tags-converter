@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Expert → Plant SCADA Converter | mahaboobtech</title>
+    <meta name="description" content="Convert Schneider EcoStruxure Control Expert PLC variables (.XSY) to AVEVA Plant SCADA (Citect SCADA) VARIABLE.CSV tags format instantly in your browser.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- SheetJS Excel & CSV Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --canvas-bg: #282c31;
+            --dashboard-bg: #0f1314;
+            --card-bg: rgba(22, 32, 30, 0.75);
+            --card-border: rgba(45, 212, 191, 0.2);
+            --card-border-dashed: rgba(45, 212, 191, 0.35);
+
+            --text-white: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --emerald-mint: #2dd4bf;
+            --emerald-dark: #0f766e;
+            --purple-accent: #a78bfa;
+            --lime-accent: #a3e635;
+            --sky-blue: #38bdf8;
+
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--canvas-bg);
+            color: var(--text-white);
+        }
+
+        @media (min-width: 861px) {
+            html,
+            body {
+                height: 100vh;
+                max-height: 100vh;
+                overflow: hidden;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 18px 36px 14px;
+            }
+
+            .dashboard-frame {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                max-width: 1180px;
+                margin: 0 auto;
+                width: 100%;
+                max-height: 95vh;
+                padding: 22px 30px 18px;
+            }
+
+            .main-content-split {
+                flex: 1;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 860px) {
+            html,
+            body {
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 12px 14px;
+            }
+
+            .dashboard-frame {
+                padding: 20px 16px;
+                gap: 24px;
+            }
+
+            .main-content-split {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+        }
+
+        /* Outer Dashboard Glass Frame */
+        .dashboard-frame {
+            background: var(--dashboard-bg);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 80px -10px rgba(0, 0, 0, 0.85);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle Ambient Aura Backgrounds */
+        .dashboard-frame::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.12) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .dashboard-frame::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            left: -100px;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Top Navigation Header */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .brand-logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-white);
+        }
+
+        .brand-icon-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--emerald-mint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d1716;
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+        }
+
+        .brand-meta {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .brand-tagline {
+            font-size: 11px;
+            color: var(--emerald-mint);
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-link-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-white);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        .nav-link-item:hover {
+            background: rgba(167, 139, 250, 0.15);
+            border-color: rgba(167, 139, 250, 0.4);
+            color: var(--purple-accent);
+            transform: translateY(-2px);
+        }
+
+        .nav-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 18px;
+            border-radius: 30px;
+            background: var(--purple-accent);
+            color: #0c0a14;
+            text-decoration: none;
+            font-size: 12.5px;
+            font-weight: 800;
+            box-shadow: 0 4px 16px rgba(167, 139, 250, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .nav-cta-btn:hover {
+            background: #c4b5fd;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(167, 139, 250, 0.5);
+        }
+
+        /* 2-Column Split Body Layout */
+        .main-content-split {
+            z-index: 10;
+            position: relative;
+            gap: 32px;
+        }
+
+        /* LEFT COLUMN: Upload Card Widget */
+        .upload-card-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Brand Flow Header Badge */
+        .brand-flow-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 8px 16px;
+            width: fit-content;
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.03);
+        }
+
+        .brand-img {
+            height: 48px;
+            width: auto;
+            max-width: 140px;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+        }
+
+        .flow-arrow {
+            color: var(--purple-accent);
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        /* SCADA Parameter Settings Box */
+        .scada-config-box {
+            background: rgba(15, 23, 22, 0.7);
+            border: 1px solid rgba(167, 139, 250, 0.25);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        @media (max-width: 640px) {
+            .scada-config-box {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 12px 14px;
+            }
+        }
+
+        .scada-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .scada-input-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: 0.01em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .scada-input-label .req-star {
+            color: #ef4444;
+            font-weight: 800;
+        }
+
+        .scada-input-field {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 9px 12px;
+            color: var(--text-white);
+            font-size: 12.5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .scada-input-field::placeholder {
+            color: rgba(148, 163, 184, 0.45);
+            font-weight: 500;
+        }
+
+        .scada-input-field:focus {
+            border-color: var(--purple-accent);
+            box-shadow: 0 0 16px rgba(167, 139, 250, 0.3);
+            background: rgba(20, 16, 32, 0.9);
+        }
+
+        .scada-input-field.input-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.35) !important;
+            background: rgba(45, 12, 12, 0.6) !important;
+        }
+
+        /* Interactive Drag & Drop Box */
+        .dropzone-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 2px dashed var(--card-border-dashed);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .dropzone-container:hover,
+        .dropzone-container.dragover {
+            border-color: var(--purple-accent);
+            background: rgba(30, 24, 45, 0.85);
+            box-shadow: 0 0 30px rgba(167, 139, 250, 0.2);
+        }
+
+        .upload-icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(167, 139, 250, 0.15);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--purple-accent);
+            box-shadow: 0 0 16px rgba(167, 139, 250, 0.25);
+        }
+
+        .upload-label-main {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--text-white);
+        }
+
+        .upload-label-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        .browse-pill-btn {
+            background: var(--purple-accent);
+            color: #0c0a14;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 12.5px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(167, 139, 250, 0.35);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .browse-pill-btn:hover {
+            background: #c4b5fd;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(167, 139, 250, 0.5);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-info {
+            font-size: 12px;
+            color: var(--emerald-mint);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        /* Compact Address Mapping Specs Bar */
+        .address-specs-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 8px 14px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            font-size: 11.5px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .address-specs-bar .spec-item {
+            color: var(--text-white);
+            font-weight: 600;
+        }
+
+        .address-specs-bar .dst {
+            color: var(--purple-accent);
+            font-weight: 700;
+        }
+
+        /* Status Alert Box */
+        .status {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            z-index: 10;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.processing {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: var(--sky-blue);
+        }
+
+        .status.success {
+            background: rgba(45, 212, 191, 0.15);
+            border: 1px solid rgba(45, 212, 191, 0.4);
+            color: var(--emerald-mint);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+
+        /* RIGHT COLUMN: Hero Intro + VECTOR GRAPHIC ANIMATION PLAYER */
+        .hero-info-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .hero-headline {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+            background: linear-gradient(135deg, #ffffff 30%, var(--purple-accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-description {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* VECTOR ANIMATION VIDEO WIDGET FRAME */
+        .vector-video-box {
+            background: rgba(12, 16, 18, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: 14px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vector-player-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 2px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ef4444; }
+        .dot.yellow { background: #f59e0b; }
+        .dot.green { background: #10b981; }
+
+        .video-scene-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .scene-tab {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10.5px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .scene-tab.active {
+            background: rgba(167, 139, 250, 0.2);
+            border-color: var(--purple-accent);
+            color: var(--purple-accent);
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+        }
+
+        .player-toggle-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-white);
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 10.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .player-toggle-btn:hover {
+            background: rgba(167, 139, 250, 0.2);
+            color: var(--purple-accent);
+        }
+
+        .vector-stage-screen {
+            position: relative;
+            width: 100%;
+            height: 185px;
+            background: #080c10;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Scenes Stack */
+        .vector-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .vector-scene.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Vector Animated Windows */
+        .vector-app-window {
+            width: 90%;
+            height: 90%;
+            background: #11171a;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-topbar {
+            height: 24px;
+            background: rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 8px;
+            font-size: 10.5px;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .app-workspace {
+            flex: 1;
+            padding: 10px;
+            position: relative;
+            display: flex;
+            gap: 10px;
+        }
+
+        .tree-menu {
+            width: 35%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 9.5px;
+            color: var(--text-dim);
+        }
+
+        .tree-item {
+            padding: 3px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tree-item.active-target {
+            background: rgba(167, 139, 250, 0.2);
+            color: var(--purple-accent);
+            font-weight: 700;
+        }
+
+        /* Vector Animated Cursor & Flying Files */
+        .vector-cursor {
+            position: absolute;
+            z-index: 30;
+            color: #ffffff;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
+            transition: all 0.8s ease;
+        }
+
+        .cursor-anim-1 {
+            animation: cursorExportFlow 4s infinite ease-in-out;
+        }
+
+        @keyframes cursorExportFlow {
+            0% { top: 70%; left: 80%; transform: scale(1); }
+            35% { top: 32%; left: 24%; transform: scale(1); }
+            45% { top: 32%; left: 24%; transform: scale(0.9); }
+            65% { top: 58%; left: 42%; transform: scale(1); }
+            100% { top: 70%; left: 80%; transform: scale(1); }
+        }
+
+        .context-menu-popup {
+            position: absolute;
+            top: 30px;
+            left: 20px;
+            background: #1e2529;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 4px;
+            width: 110px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+            z-index: 25;
+            font-size: 9.5px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            opacity: 0;
+            animation: menuPopupFlow 4s infinite ease-in-out;
+        }
+
+        @keyframes menuPopupFlow {
+            0%, 40% { opacity: 0; transform: translateY(4px); }
+            45%, 85% { opacity: 1; transform: translateY(0); }
+            90%, 100% { opacity: 0; transform: translateY(4px); }
+        }
+
+        .menu-opt {
+            padding: 3px 6px;
+            border-radius: 4px;
+            color: var(--text-secondary);
+        }
+
+        .menu-opt.highlight {
+            background: var(--purple-accent);
+            color: #0c0a14;
+            font-weight: 800;
+        }
+
+        .flying-file {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(167, 139, 250, 0.15);
+            border: 1px solid rgba(167, 139, 250, 0.4);
+            border-radius: 6px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--purple-accent);
+            opacity: 0;
+            animation: fileExportFlow 4s infinite ease-in-out;
+        }
+
+        @keyframes fileExportFlow {
+            0%, 65% { opacity: 0; transform: scale(0.6); }
+            75%, 95% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.6); }
+        }
+
+        .vector-dropzone-box {
+            flex: 1;
+            margin: 10px;
+            border: 1.5px dashed rgba(167, 139, 250, 0.4);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .converted-result-card {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(45, 212, 191, 0.2);
+            border: 1px solid rgba(45, 212, 191, 0.5);
+            border-radius: 20px;
+            padding: 4px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--emerald-mint);
+            box-shadow: 0 0 15px rgba(45, 212, 191, 0.3);
+            opacity: 0;
+            animation: resultCardFlow 4s infinite ease-in-out;
+        }
+
+        @keyframes resultCardFlow {
+            0%, 40% { opacity: 0; transform: translate(-50%, 6px); }
+            50%, 90% { opacity: 1; transform: translate(-50%, 0); }
+            95%, 100% { opacity: 0; transform: translate(-50%, 6px); }
+        }
+
+        .vector-caption-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11.5px;
+        }
+
+        .caption-step-num {
+            color: var(--purple-accent);
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(167, 139, 250, 0.15);
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .caption-text {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* 2-Column Features Showcase Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .feature-item-box {
+            background: rgba(15, 23, 22, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-item-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-white);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .feature-item-title span {
+            color: var(--purple-accent);
+        }
+
+        .feature-item-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Footer */
+        .footer {
+            z-index: 10;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11.5px;
+            color: var(--text-dim);
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-link {
+            color: var(--purple-accent);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--purple-accent);
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-frame">
+
+        <!-- Top Navigation Header (Identical structure to suite pages including GitHub link & MahaboobTech CTA) -->
+        <header class="top-nav">
+            <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="brand-logo-wrapper">
+                <div class="brand-icon-circle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                </div>
+                <div class="brand-meta">
+                    <span class="brand-name">Control Expert → Plant SCADA Converter</span>
+                    <span class="brand-tagline">Schneider Control Expert to AVEVA Plant SCADA Format</span>
+                </div>
+            </a>
+
+            <div class="nav-links">
+                <a href="index.html" class="nav-link-item" style="border-color: var(--purple-accent); color: var(--purple-accent);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    All Converters Hub
+                </a>
+                <a href="https://github.com/mahaboobtech/plc-tags-converter" target="_blank" rel="noopener" class="nav-link-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    GitHub
+                </a>
+                <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="nav-cta-btn">
+                    <span>MahaboobTech</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- 2-Column Split Body Layout -->
+        <main class="main-content-split">
+
+            <!-- LEFT COLUMN: Interactive Upload Card & SCADA Parameters -->
+            <div class="upload-card-column">
+                <div class="brand-flow-header">
+                    <img src="assets/control-expert-logo.png" alt="EcoStruxure Control Expert" class="brand-img">
+                    <span class="flow-arrow">➔</span>
+                    <img src="assets/plant-scada-logo.png" alt="AVEVA Plant SCADA" class="brand-img">
+                </div>
+
+                <!-- SCADA Required Parameter Settings Input Box -->
+                <div class="scada-config-box">
+                    <div class="scada-input-group">
+                        <label for="clusterNameInput" class="scada-input-label">
+                            Cluster Name <span class="req-star">*</span>
+                        </label>
+                        <input type="text" id="clusterNameInput" class="scada-input-field" placeholder="project_cluster" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="scada-input-group">
+                        <label for="ioDeviceInput" class="scada-input-label">
+                            I/O Device <span class="req-star">*</span>
+                        </label>
+                        <input type="text" id="ioDeviceInput" class="scada-input-field" placeholder="IOdev" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="scada-input-group">
+                        <label for="projectNameInput" class="scada-input-label">
+                            Project Name <span class="req-star">*</span>
+                        </label>
+                        <input type="text" id="projectNameInput" class="scada-input-field" placeholder="project_name" autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
+
+                <!-- Drag & Drop Upload Zone -->
+                <div class="dropzone-container" id="dropZone">
+                    <div class="upload-icon-circle">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                    </div>
+                    <div class="upload-label-main">Click to browse or drag .XSY file here</div>
+                    <div class="upload-label-sub">Upload Schneider Control Expert export (.xsy / .xml)</div>
+
+                    <label for="excelFile" class="browse-pill-btn">
+                        <span>Browse .XSY File</span>
+                    </label>
+                    <input type="file" id="excelFile" accept=".xsy,.xml">
+
+                    <div class="file-info" id="fileName"></div>
+                </div>
+
+                <!-- Compact Address Mapping Specs Bar -->
+                <div class="address-specs-bar">
+                    <span class="spec-item">%MW100 (INT) → <span class="dst">INT</span></span>
+                    <span>•</span>
+                    <span class="spec-item">%MW100 (REAL) → <span class="dst">REAL</span></span>
+                    <span>•</span>
+                    <span class="spec-item">%M100 (EBOOL) → <span class="dst">DIGITAL</span></span>
+                </div>
+
+                <!-- Status Alert Box -->
+                <div id="status" class="status"></div>
+            </div>
+
+            <!-- RIGHT COLUMN: Hero Info + VECTOR GRAPHIC ANIMATION WIDGET -->
+            <div class="hero-info-column">
+                <h1 class="hero-headline">Control Expert → Plant SCADA</h1>
+                <p class="hero-description">Transform EcoStruxure Control Expert export files (.XSY) into AVEVA Plant SCADA (Citect) VARIABLE.CSV format instantly.</p>
+
+                <!-- VECTOR MOTION GRAPHIC VIDEO ANIMATION WIDGET -->
+                <div class="vector-video-box">
+                    <div class="vector-player-header">
+                        <div class="window-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <div class="video-scene-tabs">
+                            <button class="scene-tab active" data-scene="1">1. Export .XSY</button>
+                            <button class="scene-tab" data-scene="2">2. Drop & Export CSV</button>
+                        </div>
+                        <button class="player-toggle-btn" id="vectorPlayPause">⏸ Auto Play</button>
+                    </div>
+
+                    <!-- Main Vector Animation Screen -->
+                    <div class="vector-stage-screen">
+                        <!-- Scene 1: Control Expert Vector UI -->
+                        <div class="vector-scene scene-1 active" id="scene1">
+                            <div class="vector-app-window">
+                                <div class="app-topbar">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                    <span>EcoStruxure Control Expert</span>
+                                </div>
+                                <div class="app-workspace">
+                                    <div class="tree-menu">
+                                        <div class="tree-item">Project Browser</div>
+                                        <div class="tree-item active-target">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                                            FB Variables & instances
+                                        </div>
+                                    </div>
+                                    <div class="vector-cursor cursor-anim-1">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7 18 3-7 7-3L3 3z"/></svg>
+                                    </div>
+                                    <div class="context-menu-popup menu-anim-1">
+                                        <div class="menu-opt">Copy</div>
+                                        <div class="menu-opt highlight">Export (.XSY)...</div>
+                                    </div>
+                                    <div class="flying-file file-anim-1">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        <span>Variables.XSY</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scene 2: Converter Tool Drag & Drop UI -->
+                        <div class="vector-scene scene-2" id="scene2">
+                            <div class="vector-app-window">
+                                <div class="app-topbar">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                    <span>Control Expert → Plant SCADA Converter</span>
+                                </div>
+                                <div class="vector-dropzone-box">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    <span>Drop .XSY File Here</span>
+                                </div>
+                                <div class="converted-result-card result-anim-3">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <span>Downloaded VARIABLE.CSV</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scene Caption Bar -->
+                    <div class="vector-caption-bar">
+                        <span class="caption-step-num" id="sceneNum">1 / 2</span>
+                        <span class="caption-text" id="sceneCaption">1. Control Expert: Export variables to .XSY XML file</span>
+                    </div>
+                </div>
+
+                <!-- 2-Column Features Showcase Grid -->
+                <div class="features-grid">
+                    <div class="feature-item-box">
+                        <div class="feature-item-title">
+                            <span>⚡</span> Direct .XSY Parsing
+                        </div>
+                    </div>
+
+                    <div class="feature-item-box">
+                        <div class="feature-item-title">
+                            <span>🔒</span> 100% Private & Local
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Bottom Footer -->
+        <footer class="footer">
+            <div>
+                Created with ❤️ for Automation Engineers by <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="footer-link">MahaboobTech</a>
+            </div>
+            <div>
+                © 2026 mahaboobtech. All rights reserved.
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        const fileInput = document.getElementById("excelFile");
+        const dropZone = document.getElementById("dropZone");
+        const statusBox = document.getElementById("status");
+        const fileNameBox = document.getElementById("fileName");
+
+        const clusterInput = document.getElementById("clusterNameInput");
+        const ioDeviceInput = document.getElementById("ioDeviceInput");
+        const projectInput = document.getElementById("projectNameInput");
+
+        // Clear error styling on typing
+        [clusterInput, ioDeviceInput, projectInput].forEach(input => {
+            if (input) {
+                input.addEventListener("input", function() {
+                    this.classList.remove("input-error");
+                });
+            }
+        });
+
+        // VECTOR ANIMATION SCENE CONTROLLER LOGIC
+        const sceneData = [
+            {
+                id: 1,
+                num: "1 / 2",
+                caption: "1. Control Expert: Export variables to .XSY XML file"
+            },
+            {
+                id: 2,
+                num: "2 / 2",
+                caption: "2. Drop .XSY Here: Download Plant SCADA VARIABLE.CSV"
+            }
+        ];
+
+        let activeSceneIndex = 0;
+        let isVectorPlaying = true;
+        let vectorTimer = null;
+
+        const sceneTabs = document.querySelectorAll(".scene-tab");
+        const vectorPlayPause = document.getElementById("vectorPlayPause");
+        const sceneNum = document.getElementById("sceneNum");
+        const sceneCaption = document.getElementById("sceneCaption");
+
+        function switchVectorScene(index) {
+            activeSceneIndex = index;
+            const data = sceneData[index];
+
+            sceneNum.textContent = data.num;
+            sceneCaption.textContent = data.caption;
+
+            sceneTabs.forEach((tab, tIdx) => {
+                if (tIdx === index) {
+                    tab.classList.add("active");
+                } else {
+                    tab.classList.remove("active");
+                }
+            });
+
+            document.querySelectorAll(".vector-scene").forEach((scene, sIdx) => {
+                if (sIdx === index) {
+                    scene.classList.add("active");
+                } else {
+                    scene.classList.remove("active");
+                }
+            });
+        }
+
+        function startVectorTimer() {
+            stopVectorTimer();
+            vectorTimer = setInterval(() => {
+                let nextIdx = (activeSceneIndex + 1) % sceneData.length;
+                switchVectorScene(nextIdx);
+            }, 4000);
+        }
+
+        function stopVectorTimer() {
+            if (vectorTimer) {
+                clearInterval(vectorTimer);
+                vectorTimer = null;
+            }
+        }
+
+        vectorPlayPause.addEventListener("click", () => {
+            isVectorPlaying = !isVectorPlaying;
+            if (isVectorPlaying) {
+                vectorPlayPause.textContent = "⏸ Auto Play";
+                startVectorTimer();
+            } else {
+                vectorPlayPause.textContent = "▶ Play";
+                stopVectorTimer();
+            }
+        });
+
+        sceneTabs.forEach(tab => {
+            tab.addEventListener("click", function() {
+                const targetScene = parseInt(this.getAttribute("data-scene"), 10) - 1;
+                switchVectorScene(targetScene);
+                if (isVectorPlaying) startVectorTimer();
+            });
+        });
+
+        switchVectorScene(0);
+        startVectorTimer();
+
+        // Drag & Drop / File Input logic
+        fileInput.addEventListener("change", function () {
+            if (this.files.length) {
+                handleFile(this.files[0]);
+            }
+        });
+
+        ["dragenter", "dragover"].forEach(eventName => {
+            dropZone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                dropZone.classList.add("dragover");
+            });
+        });
+
+        ["dragleave", "drop"].forEach(eventName => {
+            dropZone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                dropZone.classList.remove("dragover");
+            });
+        });
+
+        dropZone.addEventListener("drop", function (event) {
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        function handleFile(file) {
+            const validExtensions = /\.(xsy|xml)$/i;
+            if (!validExtensions.test(file.name)) {
+                showStatus(
+                    "Please select a valid Control Expert export file (.xsy or .xml).",
+                    "error"
+                );
+                return;
+            }
+
+            fileNameBox.textContent = "Selected file: " + file.name;
+            convertControlExpertToPlantSCADA(file);
+        }
+
+        function showStatus(message, type) {
+            statusBox.className = "status show " + type;
+            statusBox.innerHTML = message;
+        }
+
+        function getSortValue(address) {
+            const bitMatch = address.match(/^%M(\d+)$/i);
+            if (bitMatch) {
+                return parseFloat(bitMatch[1]);
+            }
+
+            const wordMatch = address.match(/^%MW(\d+)(?:\.(\d+))?$/i);
+            if (wordMatch) {
+                const word = parseInt(wordMatch[1], 10);
+                const decimal = wordMatch[2] ? parseFloat("0." + wordMatch[2]) : 0;
+                return word + decimal;
+            }
+
+            return Number.MAX_SAFE_INTEGER;
+        }
+
+        // CSV Field Escaper
+        function escapeCsvField(field) {
+            if (field === null || field === undefined) return '""';
+            const str = String(field);
+            return '"' + str.replace(/"/g, '""') + '"';
+        }
+
+        async function convertControlExpertToPlantSCADA(file) {
+            try {
+                // Clear input error highlights
+                clusterInput?.classList.remove("input-error");
+                ioDeviceInput?.classList.remove("input-error");
+                projectInput?.classList.remove("input-error");
+
+                // Validate Mandatory SCADA Parameters
+                const clusterName = (clusterInput?.value || "").trim();
+                const ioDevice = (ioDeviceInput?.value || "").trim();
+                const projectName = (projectInput?.value || "").trim();
+
+                const missingFields = [];
+                if (!clusterName) {
+                    missingFields.push("Cluster Name");
+                    clusterInput?.classList.add("input-error");
+                }
+                if (!ioDevice) {
+                    missingFields.push("I/O Device");
+                    ioDeviceInput?.classList.add("input-error");
+                }
+                if (!projectName) {
+                    missingFields.push("Project Name");
+                    projectInput?.classList.add("input-error");
+                }
+
+                if (missingFields.length > 0) {
+                    showStatus(
+                        "⚠️ <strong>Required SCADA Parameters Missing!</strong><br>" +
+                        "Please enter <strong>" + missingFields.join(", ") + "</strong> before converting.",
+                        "error"
+                    );
+                    return;
+                }
+
+                showStatus(
+                    '<span class="spinner"></span> Reading and parsing Control Expert .XSY file...',
+                    "processing"
+                );
+
+                await new Promise(resolve => setTimeout(resolve, 250));
+
+                const xmlText = await file.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+                const parserError = xmlDoc.querySelector("parsererror");
+                if (parserError) {
+                    throw new Error("Invalid XML file structure in .XSY export.");
+                }
+
+                const varNodes = xmlDoc.querySelectorAll("variables");
+                if (!varNodes || varNodes.length === 0) {
+                    throw new Error("No <variables> tags found in the .XSY XML file.");
+                }
+
+                const convertedRows = [];
+                let skippedCount = 0;
+
+                varNodes.forEach((node, index) => {
+                    const name = node.getAttribute("name") || "";
+                    const typeName = (node.getAttribute("typeName") || "").toUpperCase();
+                    const topologicalAddress = (node.getAttribute("topologicalAddress") || "").toUpperCase();
+                    
+                    const commentNode = node.querySelector("comment");
+                    const comment = commentNode ? commentNode.textContent.trim() : "";
+
+                    if (!name || !topologicalAddress) {
+                        skippedCount++;
+                        return;
+                    }
+
+                    // Check for located Modbus addresses (%MW***, %MW***.bit, %M***)
+                    const mwDecimalMatch = topologicalAddress.match(/^%MW(\d+)\.(\d+)$/);
+                    const mwMatch = topologicalAddress.match(/^%MW(\d+)$/);
+                    const mMatch = topologicalAddress.match(/^%M(\d+)$/);
+
+                    let scadaDataType = "INT";
+
+                    if (mwDecimalMatch) {
+                        scadaDataType = "DIGITAL";
+                    } else if (mwMatch) {
+                        if (typeName === "UINT") {
+                            scadaDataType = "UINT";
+                        } else if (typeName === "WORD") {
+                            scadaDataType = "WORD";
+                        } else if (typeName === "REAL" || typeName === "FLOAT") {
+                            scadaDataType = "REAL";
+                        } else if (typeName === "EBOOL" || typeName === "BOOL") {
+                            scadaDataType = "DIGITAL";
+                        } else {
+                            scadaDataType = "INT";
+                        }
+                    } else if (mMatch) {
+                        scadaDataType = "DIGITAL";
+                    } else {
+                        // Skip unlocated variables
+                        skippedCount++;
+                        return;
+                    }
+
+                    convertedRows.push({
+                        name: name,
+                        scadaDataType: scadaDataType,
+                        address: topologicalAddress,
+                        comment: comment,
+                        sortVal: getSortValue(topologicalAddress)
+                    });
+                });
+
+                if (convertedRows.length === 0) {
+                    showStatus(
+                        "<strong>No located %MW / %M variables found in .XSY file</strong><br>" +
+                        "Parsed " + varNodes.length + " variables, but none contained standard PLC topological addresses (%MW*** or %M***).",
+                        "error"
+                    );
+                    return;
+                }
+
+                // Sort variables sequentially by Modbus topological address
+                convertedRows.sort((a, b) => a.sortVal - b.sortVal);
+
+                // Build Plant SCADA 32-column VARIABLE.CSV header & rows
+                const headers = [
+                    "Equipment", "Item Name", "Tag Name", "Cluster Name", "I/O Device",
+                    "Data Type", "Address", "Comment", "Deadband", "Eng Units",
+                    "Format", "Raw Zero Scale", "Raw Full Scale", "Eng Zero Scale", "Eng Full Scale",
+                    "Custom 1", "Custom 2", "Custom 3", "Custom 4", "Custom 5",
+                    "Custom 6", "Custom 7", "Custom 8", "Historize", "Project",
+                    "EDITCODE", "LINKED", "OID", "REF1", "REF2", "CUSTOM", "TAGGENLINK"
+                ];
+
+                const csvLines = [headers.join(",")];
+
+                convertedRows.forEach(row => {
+                    const lineCols = [
+                        "",                    // Equipment
+                        "",                    // Item Name
+                        row.name,              // Tag Name
+                        clusterName,           // Cluster Name (from UI input)
+                        ioDevice,              // I/O Device (from UI input)
+                        row.scadaDataType,     // Data Type
+                        row.address,           // Address
+                        row.comment,           // Comment
+                        "", "", "", "", "", "", "", // Deadband..Eng Full Scale
+                        "", "", "", "", "", "", "", "", // Custom 1..8
+                        "",                    // Historize
+                        projectName,           // Project (from UI input)
+                        "", "", "", "", "", "", ""  // EDITCODE..TAGGENLINK
+                    ];
+
+                    const escapedCols = lineCols.map(escapeCsvField);
+                    csvLines.push(escapedCols.join(","));
+                });
+
+                const finalCsvContent = csvLines.join("\r\n");
+
+                // Download VARIABLE.CSV file directly
+                const blob = new Blob([finalCsvContent], { type: "text/csv;charset=utf-8;" });
+                const downloadUrl = URL.createObjectURL(blob);
+                
+                const downloadFileName = `VARIABLE.csv`;
+
+                const downloadLink = document.createElement("a");
+                downloadLink.href = downloadUrl;
+                downloadLink.download = downloadFileName;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(downloadUrl);
+
+                showStatus(
+                    "🎉 <strong>Conversion Successful!</strong><br>" +
+                    "Converted <strong>" + convertedRows.length + "</strong> located variables into <code>" + downloadFileName + "</code>.<br>" +
+                    (skippedCount > 0 ? "<small style='opacity:0.8;'>(" + skippedCount + " unlocated variables without %MW/%M address skipped)</small>" : ""),
+                    "success"
+                );
+
+            } catch (err) {
+                console.error(err);
+                showStatus(
+                    "<strong>Error processing file:</strong> " + err.message,
+                    "error"
+                );
+            }
+        }
+    </script>
+</body>
+
+</html>
