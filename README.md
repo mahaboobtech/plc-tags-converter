@@ -28,8 +28,16 @@ A modern, web-based suite of industrial automation tag conversion tools for PLC 
   - `0100` (Coil Bit) $\rightarrow$ `%M100` (`EBOOL`)
 - **Direct `.XSY` XML Export**: Generates Schneider Control Expert compatible `.XSY` files ready for 1-click import into Control Expert.
 
-### 3. Plant SCADA → Control Expert (`Upcoming`)
-- Transform AVEVA Plant SCADA (formerly Citect SCADA) variable databases (`variable.dbf` / `.csv`) into EcoStruxure Control Expert PLC variable imports (`.XLS` / `.CSV`).
+### 3. Plant SCADA → Control Expert (`Live & Ready`)
+- **Direct Variable Database Parsing**: Supports drag & drop upload of AVEVA Plant SCADA / Citect SCADA `VARIABLE.CSV` files.
+- **Modbus %MW / %M Filter**: Automatically extracts located Modbus tags (`%MW***`, `%MW***.bit`, `%M***`) and ignores unlocated SCADA internal tags.
+- **Data Type Mapping**:
+  - `UINT` $\rightarrow$ `UINT`
+  - `WORD` $\rightarrow$ `WORD`
+  - `INT` $\rightarrow$ `INT`
+  - `REAL` / `FLOAT` $\rightarrow$ `REAL`
+  - `DIGITAL` / `BOOL` / `%M` / `%MW.bit` $\rightarrow$ `EBOOL`
+- **Direct `.XSY` XML Export**: Generates EcoStruxure Control Expert Variables Exchange `.XSY` XML files for instant 1-click import into Schneider Control Expert.
 
 ### 4. Control Expert → Plant SCADA (`Upcoming`)
 - Convert EcoStruxure Control Expert PLC variables (`%M`, `%MW`, unlocated tags) into AVEVA Plant SCADA variable tag definitions.
