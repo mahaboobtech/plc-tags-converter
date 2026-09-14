@@ -807,7 +807,7 @@
         <div class="converters-grid" id="convertersGrid">
 
             <!-- Card 1: Control Expert -> PI Studio (LIVE) - REAL LOGOS -->
-            <div class="converter-card" data-category="schneider pistudio" data-keywords="schneider controlexpert control expert pi studio inovance wecon modbus %mw %m">
+            <div class="converter-card" data-category="schneider pistudio" data-keywords="schneider controlexpert control expert pi studio inovance wecon modbus %mw %m xsy">
                 <div class="card-header-row">
                     <div class="brand-flow-header">
                         <img src="assets/control-expert-logo.png" alt="EcoStruxure Control Expert" class="card-brand-img">
@@ -823,11 +823,8 @@
 
                 <div class="card-body">
                     <h3 class="card-title">Control Expert → PI Studio</h3>
-                    <p class="card-desc">
-                        Converts Schneider Electric Control Expert Excel exports (`%M`, `%MW`, `%MWx.y`) into Inovance PI Studio Modbus tag format (`0x`, `4x`).
-                    </p>
                     <div class="flow-pill-bar">
-                        <span class="src">Control Expert (.XLS)</span>
+                        <span class="src">Control Expert (.XSY)</span>
                         <span class="arrow">➔</span>
                         <span class="dst">PI Studio (.XLS)</span>
                     </div>
@@ -841,7 +838,7 @@
             </div>
 
             <!-- Card 2: PI Studio -> Control Expert (UPCOMING) -->
-            <div class="converter-card coming-soon" data-category="pistudio schneider" data-keywords="pi studio inovance wecon control expert schneider modbus 0x 4x %mw %m">
+            <div class="converter-card coming-soon" data-category="pistudio schneider" data-keywords="pi studio inovance wecon control expert schneider modbus 0x 4x %mw %m xsy">
                 <div class="card-header-row">
                     <div class="brand-flow-header" style="border-color: rgba(255, 255, 255, 0.08);">
                         <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace;">PI Studio ➔ Control Expert</span>
@@ -854,13 +851,10 @@
 
                 <div class="card-body">
                     <h3 class="card-title">PI Studio → Control Expert</h3>
-                    <p class="card-desc">
-                        Convert Inovance PI Studio & WECON HMI Modbus tags (`0x`, `4x`) back into EcoStruxure Control Expert PLC variables (`%M`, `%MW`, `%MWx.y`).
-                    </p>
                     <div class="flow-pill-bar">
                         <span class="src">PI Studio (.XLS)</span>
                         <span class="arrow">➔</span>
-                        <span class="dst">Control Expert (.XLS)</span>
+                        <span class="dst">Control Expert (.XSY)</span>
                     </div>
                 </div>
 
@@ -872,7 +866,7 @@
             </div>
 
             <!-- Card 3: Plant SCADA -> Control Expert (UPCOMING) -->
-            <div class="converter-card coming-soon" data-category="plantscada schneider" data-keywords="plant scada citect avea control expert schneider variable dbf csv">
+            <div class="converter-card coming-soon" data-category="plantscada schneider" data-keywords="plant scada citect avea control expert schneider variable dbf csv xsy">
                 <div class="card-header-row">
                     <div class="brand-flow-header" style="border-color: rgba(255, 255, 255, 0.08);">
                         <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace;">Plant SCADA ➔ Control Expert</span>
@@ -885,13 +879,10 @@
 
                 <div class="card-body">
                     <h3 class="card-title">Plant SCADA → Control Expert</h3>
-                    <p class="card-desc">
-                        Transform AVEVA Plant SCADA (formerly Citect SCADA) variable databases into EcoStruxure Control Expert PLC variable imports.
-                    </p>
                     <div class="flow-pill-bar">
                         <span class="src">Plant SCADA (.DBF/.CSV)</span>
                         <span class="arrow">➔</span>
-                        <span class="dst">Control Expert (.XLS)</span>
+                        <span class="dst">Control Expert (.XSY)</span>
                     </div>
                 </div>
 
@@ -903,7 +894,7 @@
             </div>
 
             <!-- Card 4: Control Expert -> Plant SCADA (UPCOMING) -->
-            <div class="converter-card coming-soon" data-category="schneider plantscada" data-keywords="control expert schneider plant scada citect avea variable dbf csv">
+            <div class="converter-card coming-soon" data-category="schneider plantscada" data-keywords="control expert schneider plant scada citect avea variable dbf csv xsy">
                 <div class="card-header-row">
                     <div class="brand-flow-header" style="border-color: rgba(255, 255, 255, 0.08);">
                         <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace;">Control Expert ➔ Plant SCADA</span>
@@ -916,11 +907,8 @@
 
                 <div class="card-body">
                     <h3 class="card-title">Control Expert → Plant SCADA</h3>
-                    <p class="card-desc">
-                        Convert EcoStruxure Control Expert PLC variables (`%M`, `%MW`, unlocated tags) into AVEVA Plant SCADA variable tag definitions.
-                    </p>
                     <div class="flow-pill-bar">
-                        <span class="src">Control Expert (.XLS)</span>
+                        <span class="src">Control Expert (.XSY)</span>
                         <span class="arrow">➔</span>
                         <span class="dst">Plant SCADA (.DBF/.CSV)</span>
                     </div>
@@ -947,9 +935,6 @@
 
                 <div class="card-body">
                     <h3 class="card-title">Need Another Converter?</h3>
-                    <p class="card-desc">
-                        Have a specific PLC brand or SCADA tag format requirement? Request a custom converter module for your project.
-                    </p>
                     <div class="flow-pill-bar">
                         <span class="src">Any PLC / SCADA</span>
                         <span class="arrow">➔</span>

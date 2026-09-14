@@ -12,7 +12,7 @@ A modern, web-based suite of industrial automation tag conversion tools for PLC 
 ## 🚀 Converter Modules Roadmap
 
 ### 1. Control Expert → PI Studio (`Live & Ready`)
-- Converts Schneider Electric Control Expert Excel export files (`%M`, `%MW`, `%MWx.y`) into Inovance PI Studio Modbus tag format (`0x`, `4x`).
+- Direct **`.XSY`** file support: Upload raw `.xsy` variable export files from EcoStruxure Control Expert directly into the browser (no Excel macro tool needed!).
 - **Address Mapping**:
   - `%MW100` $\rightarrow$ `W` / `4100`
   - `%MW100.3` $\rightarrow$ `X` / `4100.3`

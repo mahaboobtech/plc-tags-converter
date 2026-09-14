@@ -1053,13 +1053,13 @@
                                 <line x1="5" y1="12" x2="19" y2="12" />
                             </svg>
                         </div>
-                        <div class="upload-label-main">Click to browse or drag files here to start converting</div>
-                        <div class="upload-label-sub">Supports Schneider Control Expert (.xlsx, .xls)</div>
+                        <div class="upload-label-main">Click to browse or drag .XSY file here</div>
+                        <div class="upload-label-sub">Supports Control Expert export (.xsy)</div>
 
                         <label for="excelFile" class="browse-pill-btn">
-                            <span>Browse File</span>
+                            <span>Browse .XSY File</span>
                         </label>
-                        <input type="file" id="excelFile" accept=".xlsx,.xls">
+                        <input type="file" id="excelFile" accept=".xsy,.xml">
 
                         <div class="file-info" id="fileName"></div>
                     </div>
@@ -1080,7 +1080,7 @@
                 <!-- RIGHT COLUMN: Hero Info + VECTOR GRAPHIC ANIMATED VIDEO PLAYER -->
                 <div class="hero-info-column">
                     <h1 class="hero-headline">Convert Schneider PLC variables to WECON PI Studio format</h1>
-                    <p class="hero-description">Transform Control Expert export files into WECON HMI compatible tags instantly.</p>
+                    <p class="hero-description">Transform Control Expert export files (.XSY) into WECON HMI compatible tags instantly.</p>
 
                     <!-- VECTOR MOTION GRAPHIC VIDEO ANIMATION WIDGET -->
                     <div class="vector-video-box">
@@ -1092,8 +1092,7 @@
                             </div>
                             <div class="video-scene-tabs">
                                 <button class="scene-tab active" data-scene="1">1. Export .XSY</button>
-                                <button class="scene-tab" data-scene="2">2. Macro Tool</button>
-                                <button class="scene-tab" data-scene="3">3. Convert HMI</button>
+                                <button class="scene-tab" data-scene="2">2. Drop .XSY & Convert</button>
                             </div>
                             <button class="player-toggle-btn" id="vectorPlayPause">⏸ Auto Play</button>
                         </div>
@@ -1133,37 +1132,8 @@
                                 </div>
                             </div>
 
-                            <!-- Scene 2: Unity Variables Management Macro Tool UI -->
+                            <!-- Scene 2: Converter Tool Drag & Drop UI -->
                             <div class="vector-scene scene-2" id="scene2">
-                                <div class="vector-app-window excel-theme">
-                                    <div class="app-topbar">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h8"/></svg>
-                                        <span>Unity Variables Management.xlsm</span>
-                                    </div>
-                                    <div class="excel-toolbar">
-                                        <span class="xl-tab">XSY Management</span>
-                                        <button class="xl-btn target-click-2">Open .XSY File</button>
-                                        <button class="xl-btn primary target-save-2">Save Sheet</button>
-                                    </div>
-                                    <div class="excel-grid-preview">
-                                        <div class="xl-row header"><span>Name</span><span>Type</span><span>Address</span></div>
-                                        <div class="xl-row row-1"><span>Motor_Start</span><span>EBOOL</span><span>%MW100.3</span></div>
-                                        <div class="xl-row row-2"><span>Speed_Set</span><span>INT</span><span>%MW100</span></div>
-                                    </div>
-                                    <!-- Vector Cursor Scene 2 -->
-                                    <div class="vector-cursor cursor-anim-2">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7 18 3-7 7-3L3 3z"/></svg>
-                                    </div>
-                                    <!-- Flying Excel Output File -->
-                                    <div class="flying-file file-anim-2">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                        <span>Export.xlsx</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Scene 3: Converter Tool Drag & Drop UI -->
-                            <div class="vector-scene scene-3" id="scene3">
                                 <div class="vector-app-window convert-theme">
                                     <div class="app-topbar">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
@@ -1173,17 +1143,17 @@
                                         <div class="vector-drop-icon">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                         </div>
-                                        <span>Drop Excel File Here</span>
+                                        <span>Drop .XSY File Here</span>
                                     </div>
                                     <!-- Flying File into Dropzone -->
                                     <div class="dropping-file file-anim-3">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                        <span>Export.xlsx</span>
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        <span>Variables.XSY</span>
                                     </div>
                                     <!-- Converted Result Card -->
                                     <div class="converted-result-card result-anim-3">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                                        <span>Downloaded PI_Studio_Converted.xls (DSO_DX)</span>
+                                        <span>Downloaded Variables_PI_Studio.xls (DSO_DX)</span>
                                     </div>
                                 </div>
                             </div>
@@ -1191,7 +1161,7 @@
 
                         <!-- Scene Caption Bar -->
                         <div class="vector-caption-bar">
-                            <span class="caption-step-num" id="sceneNum">1 / 3</span>
+                            <span class="caption-step-num" id="sceneNum">1 / 2</span>
                             <span class="caption-text" id="sceneCaption">Right-click FB Variables & instances in Control Expert → Export (.XSY)</span>
                         </div>
                     </div>
@@ -1268,18 +1238,13 @@
         const sceneData = [
             {
                 id: 1,
-                num: "1 / 3",
+                num: "1 / 2",
                 caption: "1. Control Expert: Right-click 'FB Variables & instances' → Export (.XSY file)"
             },
             {
                 id: 2,
-                num: "2 / 3",
-                caption: "2. Macro Tool: Open Unity Variables Management.xlsm → Import .XSY → Click Save Sheet"
-            },
-            {
-                id: 3,
-                num: "3 / 3",
-                caption: "3. Convert Here: Drop saved Excel file on left to download WECON PI Studio (.xls)"
+                num: "2 / 2",
+                caption: "2. Convert Here: Drop exported .XSY file on left to download WECON PI Studio (.xls)"
             }
         ];
 
@@ -1354,7 +1319,7 @@
         switchVectorScene(0);
         startVectorTimer();
 
-        // Excel File Drag & Drop logic
+        // Drag & Drop / File Input logic
         fileInput.addEventListener("change", function () {
             if (this.files.length) {
                 handleFile(this.files[0]);
@@ -1383,17 +1348,17 @@
         });
 
         function handleFile(file) {
-            const validExtensions = /\.(xlsx|xls)$/i;
+            const validExtensions = /\.(xsy|xml)$/i;
             if (!validExtensions.test(file.name)) {
                 showStatus(
-                    "Please select a valid Excel file (.xlsx or .xls).",
+                    "Please select a valid Control Expert export file (.xsy file).",
                     "error"
                 );
                 return;
             }
 
             fileNameBox.textContent = "Selected file: " + file.name;
-            convertExcel(file);
+            convertXSY(file);
         }
 
         function showStatus(message, type) {
@@ -1417,26 +1382,35 @@
             return Number.MAX_SAFE_INTEGER;
         }
 
-        async function convertExcel(file) {
+        async function convertXSY(file) {
             try {
                 showStatus(
-                    '<span class="spinner"></span> Reading and converting your Excel file...',
+                    '<span class="spinner"></span> Reading and parsing .XSY XML file...',
                     "processing"
                 );
 
-                await new Promise(resolve => setTimeout(resolve, 250));
+                await new Promise(resolve => setTimeout(resolve, 200));
 
-                const buffer = await file.arrayBuffer();
-                const workbook = XLSX.read(buffer, { type: "array" });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                const textContent = await file.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(textContent, "text/xml");
+
+                const parseError = xmlDoc.querySelector("parsererror");
+                if (parseError) {
+                    throw new Error("Invalid XML formatting in export file");
+                }
+
+                const varNodes = xmlDoc.querySelectorAll("variables");
+                if (!varNodes || varNodes.length === 0) {
+                    throw new Error("No <variables> elements found in .XSY file");
+                }
 
                 const convertedTags = [];
                 let skippedCount = 0;
 
-                rows.forEach((row, index) => {
-                    const name = String(row["Name"] || "").trim();
-                    const sourceAddress = String(row["Address"] || "").trim().toUpperCase();
+                varNodes.forEach((node, index) => {
+                    const name = String(node.getAttribute("name") || "").trim();
+                    const sourceAddress = String(node.getAttribute("topologicalAddress") || "").trim().toUpperCase();
 
                     if (!name || !sourceAddress) {
                         skippedCount++;
@@ -1477,60 +1451,75 @@
                     });
                 });
 
-                convertedTags.sort((a, b) => {
-                    const aValue = getSortValue(a.originalAddress);
-                    const bValue = getSortValue(b.originalAddress);
-                    if (aValue !== bValue) {
-                        return aValue - bValue;
-                    }
-                    return a.originalIndex - b.originalIndex;
-                });
+                if (convertedTags.length === 0) {
+                    showStatus(
+                        "<strong>No Modbus-mapped tags found</strong><br>" +
+                        "Analyzed " + varNodes.length + " variables, but none contained located Modbus addresses (%M or %MW).",
+                        "error"
+                    );
+                    return;
+                }
 
-                const outputData = convertedTags.map(tag => ({
-                    "Name": tag.name,
-                    "Type": tag.type,
-                    "Address": tag.address,
-                    "ByteOrder": "0",
-                    "Extend1": "0",
-                    "Extend2": "0"
-                }));
+                generateAndDownloadExcel(convertedTags, skippedCount, file.name);
 
-                const outputWorkbook = XLSX.utils.book_new();
-                const outputWorksheet = XLSX.utils.json_to_sheet(outputData, {
-                    header: ["Name", "Type", "Address", "ByteOrder", "Extend1", "Extend2"]
-                });
-
-                Object.keys(outputWorksheet).forEach(cellAddress => {
-                    if (cellAddress.startsWith("!")) return;
-                    const cell = outputWorksheet[cellAddress];
-                    cell.t = "s";
-                    cell.v = String(cell.v ?? "");
-                    cell.z = "@";
-                });
-
-                outputWorksheet["!cols"] = [
-                    { wch: 40 },
-                    { wch: 10 },
-                    { wch: 16 },
-                    { wch: 12 },
-                    { wch: 12 },
-                    { wch: 12 }
-                ];
-
-                XLSX.utils.book_append_sheet(outputWorkbook, outputWorksheet, "DSO_DX");
-
-                XLSX.writeFile(outputWorkbook, "PI_Studio_Converted.xls", { bookType: "biff8" });
-
-                showStatus(
-                    "<strong>Conversion Complete</strong><br>" +
-                    "Successfully converted <strong>" + outputData.length + "</strong> tags (skipped " + skippedCount + ")<br>" +
-                    "File downloaded automatically as <strong>PI_Studio_Converted.xls</strong>",
-                    "success"
-                );
             } catch (error) {
                 console.error(error);
-                showStatus("Conversion failed: " + error.message, "error");
+                showStatus("XSY Parsing failed: " + error.message, "error");
             }
+        }
+
+        function generateAndDownloadExcel(convertedTags, skippedCount, originalFilename) {
+            convertedTags.sort((a, b) => {
+                const aValue = getSortValue(a.originalAddress);
+                const bValue = getSortValue(b.originalAddress);
+                if (aValue !== bValue) {
+                    return aValue - bValue;
+                }
+                return a.originalIndex - b.originalIndex;
+            });
+
+            const outputData = convertedTags.map(tag => ({
+                "Name": tag.name,
+                "Type": tag.type,
+                "Address": tag.address,
+                "ByteOrder": "0",
+                "Extend1": "0",
+                "Extend2": "0"
+            }));
+
+            const outputWorkbook = XLSX.utils.book_new();
+            const outputWorksheet = XLSX.utils.json_to_sheet(outputData, {
+                header: ["Name", "Type", "Address", "ByteOrder", "Extend1", "Extend2"]
+            });
+
+            Object.keys(outputWorksheet).forEach(cellAddress => {
+                if (cellAddress.startsWith("!")) return;
+                const cell = outputWorksheet[cellAddress];
+                cell.t = "s";
+                cell.v = String(cell.v ?? "");
+                cell.z = "@";
+            });
+
+            outputWorksheet["!cols"] = [
+                { wch: 40 },
+                { wch: 10 },
+                { wch: 16 },
+                { wch: 12 },
+                { wch: 12 },
+                { wch: 12 }
+            ];
+
+            XLSX.utils.book_append_sheet(outputWorkbook, outputWorksheet, "DSO_DX");
+
+            const cleanName = originalFilename.replace(/\.[^/.]+$/, "") + "_PI_Studio.xls";
+            XLSX.writeFile(outputWorkbook, cleanName, { bookType: "biff8" });
+
+            showStatus(
+                "<strong>Conversion Complete! 🎉</strong><br>" +
+                "Successfully converted <strong>" + outputData.length + "</strong> Modbus tags (skipped " + skippedCount + " non-Modbus/unlocated items)<br>" +
+                "Downloaded automatically as <strong>" + cleanName + "</strong>",
+                "success"
+            );
         }
     </script>
 </body>
