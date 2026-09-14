@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PI Studio → Control Expert Converter | mahaboobtech</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- SheetJS Excel Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --canvas-bg: #282c31;
+            --dashboard-bg: #0f1314;
+            --card-bg: rgba(22, 32, 30, 0.75);
+            --card-border: rgba(45, 212, 191, 0.2);
+            --card-border-dashed: rgba(45, 212, 191, 0.35);
+
+            --text-white: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --emerald-mint: #2dd4bf;
+            --emerald-dark: #0f766e;
+            --purple-accent: #a78bfa;
+            --lime-accent: #a3e635;
+
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--canvas-bg);
+            color: var(--text-white);
+        }
+
+        @media (min-width: 861px) {
+            html,
+            body {
+                height: 100vh;
+                max-height: 100vh;
+                overflow: hidden;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 18px 36px 14px;
+            }
+
+            .dashboard-frame {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                max-width: 1180px;
+                margin: 0 auto;
+                width: 100%;
+                max-height: 95vh;
+                padding: 22px 30px 18px;
+            }
+
+            .main-content-split {
+                flex: 1;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 860px) {
+            html,
+            body {
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 14px 10px;
+            }
+
+            .dashboard-frame {
+                width: 100%;
+                padding: 20px 16px 18px;
+                border-radius: 22px;
+            }
+
+            .main-content-split {
+                margin: 16px 0;
+            }
+        }
+
+        .dashboard-frame {
+            background: var(--dashboard-bg);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 35px 90px -10px rgba(0, 0, 0, 0.85);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-frame::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.18) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .dashboard-frame::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            left: -100px;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.12) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .brand-logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-white);
+        }
+
+        .brand-icon-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--purple-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d1716;
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
+            transition: transform 0.25s ease;
+        }
+
+        .brand-logo-wrapper:hover .brand-icon-circle {
+            transform: scale(1.08);
+        }
+
+        .brand-meta {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            color: var(--text-white);
+        }
+
+        .brand-tagline {
+            font-size: 11px;
+            color: var(--purple-accent);
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-white);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        .nav-link-item:hover {
+            background: rgba(167, 139, 250, 0.15);
+            border-color: rgba(167, 139, 250, 0.4);
+            color: var(--purple-accent);
+            transform: translateY(-2px);
+        }
+
+        .nav-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 18px;
+            border-radius: 30px;
+            background: var(--purple-accent);
+            color: #071311;
+            text-decoration: none;
+            font-size: 12.5px;
+            font-weight: 800;
+            box-shadow: 0 4px 16px rgba(167, 139, 250, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .nav-cta-btn:hover {
+            background: #c4b5fd;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(167, 139, 250, 0.5);
+        }
+
+        .toffeeshare-grid {
+            display: grid;
+            grid-template-columns: 330px 1fr;
+            gap: 32px;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (max-width: 1024px) {
+            .toffeeshare-grid {
+                grid-template-columns: 300px 1fr;
+                gap: 22px;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .toffeeshare-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .upload-card-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px dashed rgba(167, 139, 250, 0.35);
+            border-radius: var(--radius-xl);
+            padding: 32px 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        .upload-card-box:hover,
+        .upload-card-box.dragover {
+            border-color: var(--purple-accent);
+            background: rgba(167, 139, 250, 0.1);
+            box-shadow: 0 0 30px rgba(167, 139, 250, 0.25);
+            transform: translateY(-3px);
+        }
+
+        .big-plus-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 2.5px solid var(--purple-accent);
+            color: var(--purple-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+        }
+
+        .upload-card-box:hover .big-plus-icon {
+            background: var(--purple-accent);
+            color: #071311;
+            transform: scale(1.08);
+        }
+
+        .upload-label-main {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: var(--text-white);
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .upload-label-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .browse-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 24px;
+            border-radius: 30px;
+            background: var(--purple-accent);
+            color: #071311;
+            font-size: 12.5px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(167, 139, 250, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .browse-pill-btn:hover {
+            background: #c4b5fd;
+            transform: translateY(-2px);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-info {
+            font-size: 11.5px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--purple-accent);
+            font-weight: 600;
+            min-height: 16px;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .address-specs-bar {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            font-size: 10.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .spec-item {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        .spec-item span.dst {
+            color: var(--purple-accent);
+            font-weight: 600;
+        }
+
+        .hero-info-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hero-headline {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            color: var(--text-white);
+        }
+
+        @media (max-width: 1024px) {
+            .hero-headline {
+                font-size: 22px;
+            }
+        }
+
+        .hero-description {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            font-weight: 400;
+        }
+
+        .vector-video-box {
+            background: rgba(8, 12, 18, 0.9);
+            border: 1.5px solid rgba(167, 139, 250, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vector-player-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ef4444; }
+        .dot.yellow { background: #f59e0b; }
+        .dot.green { background: #10b981; }
+
+        .video-scene-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .scene-tab {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10.5px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .scene-tab.active {
+            background: rgba(167, 139, 250, 0.2);
+            border-color: var(--purple-accent);
+            color: var(--purple-accent);
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+        }
+
+        .player-toggle-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-white);
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 10.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .player-toggle-btn:hover {
+            background: rgba(167, 139, 250, 0.2);
+            color: var(--purple-accent);
+        }
+
+        .vector-stage-screen {
+            position: relative;
+            width: 100%;
+            height: 185px;
+            background: #080c10;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .vector-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vector-scene.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .vector-app-window {
+            width: 100%;
+            height: 100%;
+            background: #11161d;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .app-topbar {
+            height: 24px;
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 6px;
+            font-size: 10px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .vector-dropzone-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1.5px dashed rgba(167, 139, 250, 0.4);
+            margin: 10px;
+            border-radius: 8px;
+            background: rgba(167, 139, 250, 0.03);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .dropping-file {
+            position: absolute;
+            padding: 6px 12px;
+            background: rgba(167, 139, 250, 0.2);
+            border: 1px solid var(--purple-accent);
+            border-radius: 6px;
+            color: var(--text-white);
+            font-size: 10.5px;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .scene-1 .dropping-file {
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: dropFileAnim1 4s infinite ease-in-out;
+        }
+
+        .scene-2 .dropping-file {
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: dropFileAnim2 4s infinite ease-in-out;
+        }
+
+        @keyframes dropFileAnim1 {
+            0% { top: 15px; opacity: 0; transform: translateX(-50%) scale(0.9); }
+            30% { top: 60px; opacity: 1; transform: translateX(-50%) scale(1); }
+            70% { top: 60px; opacity: 1; }
+            100% { top: 100px; opacity: 0; }
+        }
+
+        @keyframes dropFileAnim2 {
+            0% { top: 15px; opacity: 0; transform: translateX(-50%) scale(0.9); }
+            30% { top: 50px; opacity: 1; transform: translateX(-50%) scale(1); }
+            70% { top: 50px; opacity: 1; }
+            100% { top: 90px; opacity: 0; }
+        }
+
+        .converted-result-card {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            padding: 8px 12px;
+            background: rgba(167, 139, 250, 0.15);
+            border: 1px solid var(--purple-accent);
+            border-radius: 6px;
+            color: var(--purple-accent);
+            font-size: 10.5px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            animation: pulseResult 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseResult {
+            0%, 100% { border-color: rgba(167, 139, 250, 0.4); box-shadow: 0 0 10px rgba(167, 139, 250, 0.2); }
+            50% { border-color: var(--purple-accent); box-shadow: 0 0 20px rgba(167, 139, 250, 0.5); }
+        }
+
+        .vector-caption-bar {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+        }
+
+        .caption-step-num {
+            background: rgba(167, 139, 250, 0.2);
+            color: var(--purple-accent);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .feature-icon-box {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--purple-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .feature-icon-box svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .bottom-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 11.5px;
+            color: var(--text-dim);
+            z-index: 10;
+            position: relative;
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-link {
+            color: var(--purple-accent);
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: #c4b5fd;
+            text-decoration: underline;
+        }
+
+        .status {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            font-size: 11.5px;
+            line-height: 1.5;
+            display: none;
+            text-align: left;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.processing {
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+        }
+
+        .status.success {
+            background: rgba(45, 212, 191, 0.12);
+            border: 1px solid rgba(45, 212, 191, 0.3);
+            color: var(--emerald-mint);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-frame">
+
+        <!-- Top Navigation Header -->
+        <header class="top-nav">
+            <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="brand-logo-wrapper">
+                <div class="brand-icon-circle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                </div>
+                <div class="brand-meta">
+                    <span class="brand-name">PI Studio → Control Expert Converter</span>
+                    <span class="brand-tagline">WECON HMI to Schneider PLC Tag Format</span>
+                </div>
+            </a>
+
+            <div class="nav-links">
+                <a href="index.html" class="nav-link-item" style="border-color: var(--purple-accent); color: var(--purple-accent);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    All Converters Hub
+                </a>
+                <a href="https://github.com/mahaboobtech/plc-tags-converter" target="_blank" rel="noopener" class="nav-link-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    GitHub
+                </a>
+                <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="nav-cta-btn">
+                    <span>MahaboobTech</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Split Container -->
+        <div class="main-content-split">
+            <div class="toffeeshare-grid">
+
+                <!-- LEFT COLUMN: Upload Box -->
+                <div class="upload-column">
+                    <div class="upload-card-box drop-zone" id="dropZone">
+                        <div class="big-plus-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                        </div>
+                        <div class="upload-label-main">Click to browse or drag PI Studio file here</div>
+                        <div class="upload-label-sub">Supports WECON PI Studio tag exports (.xls, .xlsx)</div>
+
+                        <label for="excelFile" class="browse-pill-btn">
+                            <span>Browse PI Studio File</span>
+                        </label>
+                        <input type="file" id="excelFile" accept=".xls,.xlsx">
+
+                        <div class="file-info" id="fileName"></div>
+                    </div>
+
+                    <!-- Compact Address Specs Bar -->
+                    <div class="address-specs-bar">
+                        <span class="spec-item">W/43000 → <span class="dst">%MW3000</span></span>
+                        <span>•</span>
+                        <span class="spec-item">X/4100.3 → <span class="dst">%MW100.3</span></span>
+                        <span>•</span>
+                        <span class="spec-item">X/0100 → <span class="dst">%M100</span></span>
+                    </div>
+
+                    <!-- Status Alert Box -->
+                    <div id="status" class="status"></div>
+                </div>
+
+                <!-- RIGHT COLUMN: Hero Info + VECTOR GRAPHIC ANIMATED VIDEO PLAYER -->
+                <div class="hero-info-column">
+                    <h1 class="hero-headline">Convert WECON PI Studio tags to Schneider PLC variables</h1>
+                    <p class="hero-description">Transform PI Studio Modbus tag exports into EcoStruxure Control Expert ready .XSY files.</p>
+
+                    <!-- VECTOR MOTION GRAPHIC VIDEO ANIMATION WIDGET -->
+                    <div class="vector-video-box">
+                        <div class="vector-player-header">
+                            <div class="window-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <div class="video-scene-tabs">
+                                <button class="scene-tab active" data-scene="1">1. Export PI Studio</button>
+                                <button class="scene-tab" data-scene="2">2. Drop & Convert</button>
+                            </div>
+                            <button class="player-toggle-btn" id="vectorPlayPause">⏸ Auto Play</button>
+                        </div>
+
+                        <!-- Main Vector Animation Screen -->
+                        <div class="vector-stage-screen">
+                            <!-- Scene 1: PI Studio Vector UI -->
+                            <div class="vector-scene scene-1 active" id="scene1">
+                                <div class="vector-app-window">
+                                    <div class="app-topbar">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                        <span>WECON PI Studio</span>
+                                    </div>
+                                    <div style="flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                        <div style="font-size: 10px; color: var(--purple-accent); font-weight: 700; font-family: 'JetBrains Mono', monospace;">Tag Database (DSO_DX)</div>
+                                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 8px; font-size: 9.5px; font-family: 'JetBrains Mono', monospace;">
+                                            <div style="display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 4px;"><span>Name</span><span>Address</span></div>
+                                            <div style="display: flex; justify-content: space-between; color: var(--text-white);"><span>ACETONE_SP</span><span>42004</span></div>
+                                            <div style="display: flex; justify-content: space-between; color: var(--text-white);"><span>MOTOR_START</span><span>4100.3</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="dropping-file file-anim-1">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        <span>BIT_EXAMPLE.xls</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Scene 2: Converter Tool Drag & Drop UI -->
+                            <div class="vector-scene scene-2" id="scene2">
+                                <div class="vector-app-window">
+                                    <div class="app-topbar">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                        <span>PI Studio → Control Expert Converter</span>
+                                    </div>
+                                    <div class="vector-dropzone-box">
+                                        <div class="vector-drop-icon">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        </div>
+                                        <span>Drop PI Studio File Here</span>
+                                    </div>
+                                    <div class="dropping-file file-anim-2">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        <span>BIT_EXAMPLE.xls</span>
+                                    </div>
+                                    <div class="converted-result-card">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                        <span>Downloaded BIT_EXAMPLE_Control_Expert.xsy</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scene Caption Bar -->
+                        <div class="vector-caption-bar">
+                            <span class="caption-step-num" id="sceneNum">1 / 2</span>
+                            <span class="caption-text" id="sceneCaption">Open WECON PI Studio → Export Tag Database (.xls)</span>
+                        </div>
+                    </div>
+
+                    <!-- 2-Column Feature Grid -->
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <div class="feature-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                </svg>
+                            </div>
+                            <span>100% Client-Side Processing</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                </svg>
+                            </div>
+                            <span>Blazingly Fast Conversion</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <polyline points="19 12 12 19 5 12" />
+                                </svg>
+                            </div>
+                            <span>Modbus Sequential Auto-Sort</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                            </div>
+                            <span>Direct .XSY XML Export</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Bottom Footer Bar -->
+        <footer class="bottom-footer">
+            <div class="footer-left">
+                <span>Developed by</span>
+                <a href="https://github.com/mahaboobtech" target="_blank" rel="noopener" class="footer-link">
+                    @mahaboobtech
+                </a>
+                <span>•</span>
+                <a href="https://mahaboobtech.in" target="_blank" rel="noopener" class="footer-link">
+                    mahaboobtech.in
+                </a>
+            </div>
+            <div class="copyright">
+                © 2026 mahaboobtech. All rights reserved.
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        const fileInput = document.getElementById("excelFile");
+        const dropZone = document.getElementById("dropZone");
+        const statusBox = document.getElementById("status");
+        const fileNameBox = document.getElementById("fileName");
+
+        // VECTOR ANIMATION SCENE CONTROLLER LOGIC
+        const sceneData = [
+            {
+                id: 1,
+                num: "1 / 2",
+                caption: "1. WECON PI Studio: Export Tag Database (.xls file)"
+            },
+            {
+                id: 2,
+                num: "2 / 2",
+                caption: "2. Convert Here: Drop PI Studio Excel file to download Control Expert ready (.xsy)"
+            }
+        ];
+
+        let activeSceneIndex = 0;
+        let isVectorPlaying = true;
+        let vectorTimer = null;
+
+        const sceneTabs = document.querySelectorAll(".scene-tab");
+        const vectorPlayPause = document.getElementById("vectorPlayPause");
+        const sceneNum = document.getElementById("sceneNum");
+        const sceneCaption = document.getElementById("sceneCaption");
+
+        function switchVectorScene(index) {
+            activeSceneIndex = index;
+            const data = sceneData[index];
+
+            sceneNum.textContent = data.num;
+            sceneCaption.textContent = data.caption;
+
+            sceneTabs.forEach((tab, tIdx) => {
+                if (tIdx === index) {
+                    tab.classList.add("active");
+                } else {
+                    tab.classList.remove("active");
+                }
+            });
+
+            document.querySelectorAll(".vector-scene").forEach((scene, sIdx) => {
+                if (sIdx === index) {
+                    scene.classList.add("active");
+                } else {
+                    scene.classList.remove("active");
+                }
+            });
+        }
+
+        function startVectorTimer() {
+            stopVectorTimer();
+            vectorTimer = setInterval(() => {
+                let nextIdx = (activeSceneIndex + 1) % sceneData.length;
+                switchVectorScene(nextIdx);
+            }, 4000);
+        }
+
+        function stopVectorTimer() {
+            if (vectorTimer) {
+                clearInterval(vectorTimer);
+                vectorTimer = null;
+            }
+        }
+
+        vectorPlayPause.addEventListener("click", () => {
+            isVectorPlaying = !isVectorPlaying;
+            if (isVectorPlaying) {
+                vectorPlayPause.textContent = "⏸ Auto Play";
+                startVectorTimer();
+            } else {
+                vectorPlayPause.textContent = "▶ Play";
+                stopVectorTimer();
+            }
+        });
+
+        sceneTabs.forEach(tab => {
+            tab.addEventListener("click", function() {
+                const targetScene = parseInt(this.getAttribute("data-scene"), 10) - 1;
+                switchVectorScene(targetScene);
+                if (isVectorPlaying) startVectorTimer();
+            });
+        });
+
+        switchVectorScene(0);
+        startVectorTimer();
+
+        // Drag & Drop / File Input logic
+        fileInput.addEventListener("change", function () {
+            if (this.files.length) {
+                handleFile(this.files[0]);
+            }
+        });
+
+        ["dragenter", "dragover"].forEach(eventName => {
+            dropZone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                dropZone.classList.add("dragover");
+            });
+        });
+
+        ["dragleave", "drop"].forEach(eventName => {
+            dropZone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                dropZone.classList.remove("dragover");
+            });
+        });
+
+        dropZone.addEventListener("drop", function (event) {
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        function handleFile(file) {
+            const validExtensions = /\.(xlsx|xls)$/i;
+            if (!validExtensions.test(file.name)) {
+                showStatus(
+                    "Please select a valid PI Studio tag Excel file (.xls or .xlsx).",
+                    "error"
+                );
+                return;
+            }
+
+            fileNameBox.textContent = "Selected file: " + file.name;
+            convertPIStudioToControlExpert(file);
+        }
+
+        function showStatus(message, type) {
+            statusBox.className = "status show " + type;
+            statusBox.innerHTML = message;
+        }
+
+        function getSortValue(address) {
+            const bitMatch = address.match(/^%M(\d+)$/i);
+            if (bitMatch) {
+                return parseFloat(bitMatch[1]);
+            }
+
+            const wordMatch = address.match(/^%MW(\d+)(?:\.(\d+))?$/i);
+            if (wordMatch) {
+                const word = parseInt(wordMatch[1], 10);
+                const decimal = wordMatch[2] ? parseFloat("0." + wordMatch[2]) : 0;
+                return word + decimal;
+            }
+
+            return Number.MAX_SAFE_INTEGER;
+        }
+
+        async function convertPIStudioToControlExpert(file) {
+            try {
+                showStatus(
+                    '<span class="spinner"></span> Reading and parsing PI Studio tag file...',
+                    "processing"
+                );
+
+                await new Promise(resolve => setTimeout(resolve, 250));
+
+                const buffer = await file.arrayBuffer();
+                const workbook = XLSX.read(buffer, { type: "array" });
+                
+                // Locate DSO_DX sheet or default to first sheet
+                let worksheet = workbook.Sheets["DSO_DX"];
+                if (!worksheet) {
+                    worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                }
+
+                const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                if (!rows || rows.length === 0) {
+                    throw new Error("No tag data rows found in Excel sheet");
+                }
+
+                const convertedVars = [];
+                let skippedCount = 0;
+
+                rows.forEach((row, index) => {
+                    const name = String(row["Name"] || "").trim();
+                    const tagType = String(row["Type"] || "").trim().toUpperCase();
+                    let rawAddress = String(row["Address"] || "").trim().toUpperCase();
+
+                    if (!name || !rawAddress) {
+                        skippedCount++;
+                        return;
+                    }
+
+                    // Strip float formatting if present e.g. 43000.0 for integer word
+                    if (rawAddress.includes(".") && tagType !== "X" && !/\.\d+$/.test(rawAddress)) {
+                        rawAddress = rawAddress.split(".")[0];
+                    }
+
+                    let typeName = "INT";
+                    let topologicalAddress = "";
+
+                    // Case 1: Already formatted %MW or %M
+                    if (rawAddress.startsWith("%")) {
+                        topologicalAddress = rawAddress;
+                        typeName = (rawAddress.includes(".") || rawAddress.startsWith("%M")) ? "EBOOL" : "INT";
+                    }
+                    // Case 2: Bit in Holding Register 4x.y (e.g. 4100.3 or 41000.3)
+                    else {
+                        const mBitInWord = rawAddress.match(/^40*(\d+)\.(\d+)$/);
+                        const mWord = rawAddress.match(/^40*(\d+)$/);
+                        const mCoil = rawAddress.match(/^0*(\d+)$/);
+
+                        if (mBitInWord) {
+                            const wordNum = mBitInWord[1];
+                            const bitNum = mBitInWord[2];
+                            typeName = "EBOOL";
+                            topologicalAddress = "%MW" + wordNum + "." + bitNum;
+                        }
+                        else if (mWord) {
+                            const wordNum = mWord[1];
+                            typeName = (tagType === "D" || tagType === "F" || tagType === "FLOAT" || tagType === "REAL") ? "REAL" : "INT";
+                            topologicalAddress = "%MW" + wordNum;
+                        }
+                        else if (mCoil) {
+                            const coilNum = mCoil[1];
+                            typeName = "EBOOL";
+                            topologicalAddress = "%M" + coilNum;
+                        }
+                        else {
+                            skippedCount++;
+                            return;
+                        }
+                    }
+
+                    convertedVars.push({
+                        name: name,
+                        typeName: typeName,
+                        topologicalAddress: topologicalAddress,
+                        originalIndex: index
+                    });
+                });
+
+                if (convertedVars.length === 0) {
+                    showStatus(
+                        "<strong>No valid Modbus tags found</strong><br>" +
+                        "Analyzed " + rows.length + " rows, but none contained standard Modbus addresses (0x, 4x, 4x.y).",
+                        "error"
+                    );
+                    return;
+                }
+
+                // Sort variables sequentially by Modbus topological address
+                convertedVars.sort((a, b) => {
+                    const aVal = getSortValue(a.topologicalAddress);
+                    const bVal = getSortValue(b.topologicalAddress);
+                    if (aVal !== bVal) {
+                        return aVal - bVal;
+                    }
+                    return a.originalIndex - b.originalIndex;
+                });
+
+                // Generate Schneider Control Expert .XSY XML String
+                const now = new Date();
+                const dateStr = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+
+                let xmlString = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+                xmlString += '<VariablesExchangeFile>\n';
+                xmlString += '  <fileHeader company="Schneider Automation" product="Control Expert" dateTime="date_and_time#' + dateStr + '" content="Variable source file" DTDVersion="41"></fileHeader>\n';
+                xmlString += '  <contentHeader name="Project" version="0.0.000"></contentHeader>\n';
+                xmlString += '  <dataBlock>\n';
+
+                convertedVars.forEach(v => {
+                    xmlString += '    <variables name="' + escapeXml(v.name) + '" typeName="' + v.typeName + '" topologicalAddress="' + v.topologicalAddress + '"></variables>\n';
+                });
+
+                xmlString += '  </dataBlock>\n';
+                xmlString += '</VariablesExchangeFile>';
+
+                // Trigger automatic download of .XSY file
+                const baseName = file.name.replace(/\.[^/.]+$/, "");
+                const xsyFileName = baseName + "_Control_Expert.xsy";
+
+                const blob = new Blob([xmlString], { type: "application/xml;charset=utf-8;" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = xsyFileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showStatus(
+                    "<strong>Conversion Complete! 🎉</strong><br>" +
+                    "Successfully converted <strong>" + convertedVars.length + "</strong> PI Studio tags to Control Expert variables (skipped " + skippedCount + " items)<br>" +
+                    "Downloaded automatically as <strong>" + xsyFileName + "</strong>",
+                    "success"
+                );
+
+            } catch (error) {
+                console.error(error);
+                showStatus("Conversion failed: " + error.message, "error");
+            }
+        }
+
+        function escapeXml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&apos;");
+        }
+    </script>
+</body>
+
+</html>

@@ -20,8 +20,13 @@ A modern, web-based suite of industrial automation tag conversion tools for PLC 
 - **Modbus Sequential Sorting**: Automatically sorts converted tags by address order.
 - **Direct PI Studio Export**: Generates `.xls` (BIFF8) files formatted with required `DSO_DX` sheet name and forced text encoding (`@`).
 
-### 2. PI Studio → Control Expert (`Upcoming`)
-- Converts Inovance PI Studio & WECON HMI Modbus tags (`0x`, `4x`) back into EcoStruxure Control Expert PLC variables (`%M`, `%MW`, `%MWx.y`).
+### 2. PI Studio → Control Expert (`Live & Ready`)
+- Converts Inovance PI Studio & WECON HMI Modbus tags (`0x`, `4x`, `4x.y`) back into EcoStruxure Control Expert PLC variables (`%M`, `%MW`, `%MWx.y`).
+- **Reverse Address Mapping**:
+  - `43000` (Word) $\rightarrow$ `%MW3000` (`INT` or `REAL`)
+  - `4100.3` (Bit in Word) $\rightarrow$ `%MW100.3` (`EBOOL`)
+  - `0100` (Coil Bit) $\rightarrow$ `%M100` (`EBOOL`)
+- **Direct `.XSY` XML Export**: Generates Schneider Control Expert compatible `.XSY` files ready for 1-click import into Control Expert.
 
 ### 3. Plant SCADA → Control Expert (`Upcoming`)
 - Transform AVEVA Plant SCADA (formerly Citect SCADA) variable databases (`variable.dbf` / `.csv`) into EcoStruxure Control Expert PLC variable imports (`.XLS` / `.CSV`).
