@@ -13,6 +13,8 @@
 
     <!-- SheetJS Excel Library -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- JSZip Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <style>
         :root {
@@ -1300,7 +1302,8 @@
                     throw new Error("No tag data rows found in Excel sheet");
                 }
 
-                const convertedVars = [];
+                const deviceGroups = {}; // "Default" or device prefix
+                let totalConverted = 0;
                 let skippedCount = 0;
 
                 rows.forEach((row, index) => {
@@ -1311,6 +1314,14 @@
                     if (!name || !rawAddress) {
                         skippedCount++;
                         return;
+                    }
+
+                    // Extract device prefix (e.g. 1#4100 -> prefix "1", address "4100")
+                    let deviceKey = "Default";
+                    const deviceMatch = rawAddress.match(/^(\d+)#(.*)$/);
+                    if (deviceMatch) {
+                        deviceKey = deviceMatch[1];
+                        rawAddress = deviceMatch[2]; // The rest is the address
                     }
 
                     // Strip float formatting if present e.g. 43000.0 for integer word
@@ -1354,15 +1365,20 @@
                         }
                     }
 
-                    convertedVars.push({
+                    if (!deviceGroups[deviceKey]) {
+                        deviceGroups[deviceKey] = [];
+                    }
+
+                    deviceGroups[deviceKey].push({
                         name: name,
                         typeName: typeName,
                         topologicalAddress: topologicalAddress,
                         originalIndex: index
                     });
+                    totalConverted++;
                 });
 
-                if (convertedVars.length === 0) {
+                if (totalConverted === 0) {
                     showStatus(
                         "<strong>No valid Modbus tags found</strong><br>" +
                         "Analyzed " + rows.length + " rows, but none contained standard Modbus addresses (0x, 4x, 4x.y).",
@@ -1371,51 +1387,86 @@
                     return;
                 }
 
-                // Sort variables sequentially by Modbus topological address
-                convertedVars.sort((a, b) => {
-                    const aVal = getSortValue(a.topologicalAddress);
-                    const bVal = getSortValue(b.topologicalAddress);
-                    if (aVal !== bVal) {
-                        return aVal - bVal;
-                    }
-                    return a.originalIndex - b.originalIndex;
-                });
+                // Helper to build XML
+                function buildXsyString(vars, deviceName) {
+                    // Sort variables sequentially by Modbus topological address
+                    vars.sort((a, b) => {
+                        const aVal = getSortValue(a.topologicalAddress);
+                        const bVal = getSortValue(b.topologicalAddress);
+                        if (aVal !== bVal) {
+                            return aVal - bVal;
+                        }
+                        return a.originalIndex - b.originalIndex;
+                    });
 
-                // Generate Schneider Control Expert .XSY XML String
-                const now = new Date();
-                const dateStr = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+                    const now = new Date();
+                    const dateStr = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
 
-                let xmlString = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
-                xmlString += '<VariablesExchangeFile>\n';
-                xmlString += '  <fileHeader company="Schneider Automation" product="Control Expert" dateTime="date_and_time#' + dateStr + '" content="Variable source file" DTDVersion="41"></fileHeader>\n';
-                xmlString += '  <contentHeader name="Project" version="0.0.000"></contentHeader>\n';
-                xmlString += '  <dataBlock>\n';
+                    let xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+                    xml += '<VariablesExchangeFile>\n';
+                    xml += '  <fileHeader company="Schneider Automation" product="Control Expert" dateTime="date_and_time#' + dateStr + '" content="Variable source file" DTDVersion="41"></fileHeader>\n';
+                    xml += '  <contentHeader name="Project_' + escapeXml(deviceName) + '" version="0.0.000"></contentHeader>\n';
+                    xml += '  <dataBlock>\n';
 
-                convertedVars.forEach(v => {
-                    xmlString += '    <variables name="' + escapeXml(v.name) + '" typeName="' + v.typeName + '" topologicalAddress="' + v.topologicalAddress + '"></variables>\n';
-                });
+                    vars.forEach(v => {
+                        xml += '    <variables name="' + escapeXml(v.name) + '" typeName="' + v.typeName + '" topologicalAddress="' + v.topologicalAddress + '"></variables>\n';
+                    });
 
-                xmlString += '  </dataBlock>\n';
-                xmlString += '</VariablesExchangeFile>';
+                    xml += '  </dataBlock>\n';
+                    xml += '</VariablesExchangeFile>';
+                    return xml;
+                }
 
-                // Trigger automatic download of .XSY file
                 const baseName = file.name.replace(/\.[^/.]+$/, "");
-                const xsyFileName = baseName + "_Control_Expert.xsy";
+                const deviceKeys = Object.keys(deviceGroups);
 
-                const blob = new Blob([xmlString], { type: "application/xml;charset=utf-8;" });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = xsyFileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                if (deviceKeys.length === 1) {
+                    // Single file
+                    const key = deviceKeys[0];
+                    const vars = deviceGroups[key];
+                    const xmlStr = buildXsyString(vars, key);
+                    const fileName = baseName + (key !== "Default" ? "_Device_" + key : "") + "_Control_Expert.xsy";
+                    
+                    const blob = new Blob([xmlStr], { type: "application/xml;charset=utf-8;" });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
 
-                showStatus(
-                    "<strong>Conversion Complete! 🎉</strong><br>" +
-                    "Successfully converted <strong>" + convertedVars.length + "</strong> PI Studio tags to Control Expert variables (skipped " + skippedCount + " items)<br>" +
-                    "Downloaded automatically as <strong>" + xsyFileName + "</strong>",
-                    "success"
-                );
+                    showStatus(
+                        "<strong>Conversion Complete! 🎉</strong><br>" +
+                        "Successfully converted <strong>" + totalConverted + "</strong> PI Studio tags to Control Expert variables (skipped " + skippedCount + " items)<br>" +
+                        "Downloaded automatically as <strong>" + fileName + "</strong>",
+                        "success"
+                    );
+                } else {
+                    // Multiple files in ZIP
+                    const zip = new JSZip();
+                    deviceKeys.forEach(key => {
+                        const vars = deviceGroups[key];
+                        const xmlStr = buildXsyString(vars, key);
+                        const fileName = baseName + "_Device_" + key + "_Control_Expert.xsy";
+                        zip.file(fileName, xmlStr);
+                    });
+
+                    const content = await zip.generateAsync({ type: "blob" });
+                    const zipName = baseName + "_Control_Expert_Files.zip";
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(content);
+                    link.download = zipName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    showStatus(
+                        "<strong>Conversion Complete! 🎉</strong><br>" +
+                        "Successfully converted <strong>" + totalConverted + "</strong> PI Studio tags across <strong>" + deviceKeys.length + "</strong> devices (skipped " + skippedCount + " items)<br>" +
+                        "Downloaded automatically as <strong>" + zipName + "</strong>",
+                        "success"
+                    );
+                }
 
             } catch (error) {
                 console.error(error);
